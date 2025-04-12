@@ -2,10 +2,13 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
+const testRoutes = require('./routes/testRoute')
 
 // Middleware to parse JSON
 app.use(bodyParser.json());
 app.use(cors());
+
+app.use('/api/test', testRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5251;

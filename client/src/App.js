@@ -15,7 +15,7 @@ const App = () => {
           <Route path="public-boards" element={<PublicBoards />} />
           <Route path="user-boards" element={<UserBoards />} />
           <Route path="project" element={<Project />} />
-          <Route path="*" element={<NoPage />} />
+          {/* <Route path="*" element={<NoPage />} /> */}
         </Route>
       </Routes>
     </BrowserRouter>
