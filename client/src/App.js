@@ -4,7 +4,7 @@ import HomePage from './pages/HomePage';
 import PublicBoards from './pages/PublicBoards';
 import UserBoards from './pages/UserBoards';
 import Project from './pages/Project';
-
+import Login from './pages/Login';
 const App = () => {
 
   return (
@@ -15,6 +15,8 @@ const App = () => {
           <Route path="public-boards" element={<PublicBoards />} />
           <Route path="user-boards" element={<UserBoards />} />
           <Route path="project" element={<Project />} />
+          <Route path="login" element={<Login />} />
+
           {/* <Route path="*" element={<NoPage />} /> */}
         </Route>
       </Routes>
