@@ -1,5 +1,5 @@
 import React from 'react';
-import api, { getTest } from '../services/api';
+import { getTest } from '../services/api';
 
 // import axios from 'axios';
 
