@@ -1,21 +1,23 @@
-class BoardModel {
+export class BoardModel {
   constructor({
-    id = '',
+    userId = '',
+    boardId = '',
     title = '',
     visiblity = false,
   } = {}) {
-    this.id = id;
+    this.userId = userId;
+    this.boardId = boardId;
     this.title = title;
     this.visiblity = visiblity;
   }
 
-  createList() {
+  createList () {
 
   }
 
-  editBoard() {
+  editBoard () {
 
   }
 }
 
-module.exports = { BoardModel };
+export default BoardModel;

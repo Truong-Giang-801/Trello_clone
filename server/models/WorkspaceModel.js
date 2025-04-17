@@ -9,13 +9,13 @@ class WorkspaceModel {
     this.description = description;
   }
 
-  addBoard() {
+  addBoard (board) {
 
   }
 
-  removeBoard() {
+  removeBoard () {
 
   }
 }
 
-module.exports = { WorkspaceModel };
+export default WorkspaceModel;
