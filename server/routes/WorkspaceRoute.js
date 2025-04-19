@@ -6,5 +6,6 @@ const workspaceController = require('../controllers/WorkspaceController');
 const router = express.Router();
 
 router.post('/', workspaceController.createBoard);
+router.get('/:userId', workspaceController.getAllBoardByUser);
 
 module.exports = router;

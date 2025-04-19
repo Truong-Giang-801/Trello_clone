@@ -6,6 +6,7 @@ const api = axios.create({
 
 export const getTest = () => api.get('/test');
 
-export const apiWorkspaceCreateBoard = (board) => api.post('/workspace', board);
+export const apiWorkspaceCreateBoard = (board) => api.post(`/workspace`, board);
+export const apiWorkspaceGetAllBoardByUser = (userId) => api.get(`/workspace/${userId}`);
 
 export default api;

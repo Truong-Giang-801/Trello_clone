@@ -3,16 +3,15 @@ import BoardModel from "../models/BoardModel.js";
 export class WorkspaceService {
   constructor() {
     this.collection = [
-      new BoardModel({ userId: '0', boardId: '1', title: 'B1', visiblity: true })
+      new BoardModel({ userId: '0', boardId: '1', title: 'B1', visibility: true })
     ];
   }
 
   async createBoard (board) {
-    // console.log("creating");
     try {
       board.boardId = this.collection.length;
       this.collection.push(board);
-      return board;
+      return this.collection;
     } catch (error) {
       return error;
     }
@@ -20,9 +19,14 @@ export class WorkspaceService {
 
   async getAllBoardByUser (userId) {
     try {
+      const userBoards = this.collection.filter((board) => board.userId === userId);
 
+      console.log(userId);
+      console.log(JSON.stringify(userBoards, null, 2));
+
+      return userBoards;
     } catch (error) {
-
+      return error;
     }
   }
 

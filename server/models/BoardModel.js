@@ -3,12 +3,12 @@ export class BoardModel {
     userId = '',
     boardId = '',
     title = '',
-    visiblity = false,
+    visibility = false,
   } = {}) {
     this.userId = userId;
     this.boardId = boardId;
     this.title = title;
-    this.visiblity = visiblity;
+    this.visibility = visibility;
   }
 
   createList () {

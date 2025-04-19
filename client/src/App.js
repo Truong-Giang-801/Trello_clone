@@ -5,11 +5,12 @@ import PublicBoards from './pages/PublicBoards';
 import UserBoards from './pages/UserBoards';
 import Project from './pages/Project';
 import Login from './pages/Login';
-import Layout from './components/Layout';
 import Header from './components/Header';
 import { getAuth } from 'firebase/auth';
+import BoardPage from './pages/BoardPage';
 
-function App() {
+function App () {
+  // eslint-disable-next-line
   const [user, setUser] = useState(null);
   const auth = getAuth();
 
@@ -26,13 +27,14 @@ function App() {
       <Header />
       <Routes>
         <Route path="/">
-          <Route index element={<HomePage />} />
-          <Route path="public-boards" element={<PublicBoards />} />
-          <Route path="user-boards" element={<UserBoards />} />
-          <Route path="project" element={<Project />} />
-          <Route path="login" element={<Login />} />
+          <Route index element={ <HomePage /> } />
+          <Route path="public-boards" element={ <PublicBoards /> } />
+          <Route path="user-boards" element={ <UserBoards /> } />
+          <Route path="board" element={ <BoardPage /> } />
+          <Route path="projects" element={ <Project /> } />
+          <Route path="login" element={ <Login /> } />
 
-          {/* <Route path="*" element={<NoPage />} /> */}
+          {/* <Route path="*" element={<NoPage />} /> */ }
         </Route>
       </Routes>
     </BrowserRouter>
