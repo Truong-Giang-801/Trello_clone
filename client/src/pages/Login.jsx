@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   signInWithEmailAndPassword,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  signInWithPopup,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider
 } from "firebase/auth";
 import {
   Container,
@@ -60,7 +63,7 @@ const Login = () => {
   const handleForgotPassword = async () => {
 
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, GoogleAuthProvider);
       await syncUserToBackend(result.user);
       navigate("/user-boards");
     } catch (err) {
@@ -72,26 +75,26 @@ const Login = () => {
   return (
     <Container maxWidth="sm">
       <Box
-        sx={{
+        sx={ {
           mt: 8,
           p: 4,
           border: "1px solid #ddd",
           borderRadius: "12px",
           boxShadow: 3,
           backgroundColor: "white",
-        }}
+        } }
       >
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Login
         </Typography>
 
-        <form onSubmit={handleLogin}>
-          <Stack spacing={2}>
+        <form onSubmit={ handleLogin }>
+          <Stack spacing={ 2 }>
             <TextField
               type="email"
               label="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={ email }
+              onChange={ (e) => setEmail(e.target.value) }
               required
               fullWidth
               variant="outlined"
@@ -99,8 +102,8 @@ const Login = () => {
             <TextField
               type="password"
               label="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={ password }
+              onChange={ (e) => setPassword(e.target.value) }
               required
               fullWidth
               variant="outlined"
@@ -117,15 +120,15 @@ const Login = () => {
         </form>
 
 
-        <Typography variant="body2" align="center" sx={{ mt: 3 }}>
-          Don't have an account?{" "}
-          <Link to="/register" style={{ textDecoration: "none" }}>
+        <Typography variant="body2" align="center" sx={ { mt: 3 } }>
+          Don't have an account?{ " " }
+          <Link to="/register" style={ { textDecoration: "none" } }>
             Register here
           </Link>
         </Typography>
         <Button
-          onClick={handleForgotPassword}
-          sx={{ mt: 1, width: "100%" }}
+          onClick={ handleForgotPassword }
+          sx={ { mt: 1, width: "100%" } }
           color="secondary"
         >
           Forgot Password?

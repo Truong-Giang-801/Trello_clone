@@ -14,6 +14,7 @@ const UserBoards = () => {
     async function fetchWorkspaces (userId) {
         const res = await apiUserAllWorkspaceByUser(userId);
         setWorkspacesData(res.data);
+        console.log(JSON.stringify(res.data));
     }
 
     async function createBoard (board, onBoardCreated) {
@@ -26,6 +27,7 @@ const UserBoards = () => {
     async function createWorkspace (workspace, onWorkspaceCreated) {
         const res = await apiUserCreateWorkspace(workspace);
         onWorkspaceCreated(res.data);
+        console.log(JSON.stringify(res.data));
     }
 
     useEffect(() => {
@@ -77,7 +79,7 @@ const UserBoards = () => {
                         onClick={ () => {
                             const currentUser = auth.currentUser;
                             if (currentUser) {
-                                createWorkspace({ userId: currentUser.uid }, () => fetchWorkspaces(currentUser.uid));
+                                createWorkspace({ ownerId: currentUser.uid }, () => fetchWorkspaces(currentUser.uid));
                             }
                         } }
                         sx={ {

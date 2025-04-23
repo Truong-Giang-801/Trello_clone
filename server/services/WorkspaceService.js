@@ -12,9 +12,9 @@ export class WorkspaceService {
     }
   }
 
-  async getAllWorkspaceByUser (userId) {
+  async getAllWorkspaceByUser (ownerId) {
     try {
-      const ref = await WorkspaceMongoose.find({ userId: userId }).exec();
+      const ref = await WorkspaceMongoose.find({ ownerId: ownerId }).exec();
       // const userWorkspaces = this.collection.filter((workspace) => workspace.userId === userId);
       // console.log(JSON.stringify(ref, null, 2));
       return ref;
