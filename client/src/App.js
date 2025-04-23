@@ -32,7 +32,7 @@ function App () {
           <Route path="public" element={ <PublicBoards /> } />
           <Route path="private" element={ <UserBoards /> } />
           <Route path="workspace" element={ <Project /> } />
-          <Route path="board" element={ <BoardPage /> } />
+          <Route path="board/:boardId" element={<BoardPage />} />
           <Route path="login" element={ <Login /> } />
           <Route path="register" element={ <Register /> } />
 

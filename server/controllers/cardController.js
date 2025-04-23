@@ -19,6 +19,8 @@ export async function createCard(req, res) {
   try {
     const card = new CardModel(req.body);
     const createdCard = await cardService.createCard(card);
+    const io = req.app.get('socketio'); // lấy instance của io
+    io.emit('newCard', createCard); // phát event
     res.status(201).json(createdCard);
   } catch (error) {
     console.error("Error creating card:", error);
@@ -74,3 +76,13 @@ export async function editCard(req, res) {
     res.status(500).send("Internal server error");
   }
 }
+
+// Export all functions as default
+export default {
+  getCardById,
+  createCard,
+  getAllCardByList,
+  deleteCard,
+  assignUser,
+  editCard
+};
