@@ -1,19 +1,17 @@
 class ListModel {
   constructor({
-    id = '',
     title = '',
     position = 0,
   } = {}) {
-    this.id = id;
     this.title = title;
     this.position = position;
   }
 
-  createCard() {
+  createCard () {
 
   }
 
-  moveList() {
+  moveList () {
 
   }
 }
