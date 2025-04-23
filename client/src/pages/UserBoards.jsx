@@ -1,101 +1,94 @@
-import { Button, Dialog, DialogContent, DialogTitle, Stack } from '@mui/material';
-import React, { useContext, useEffect, useState } from 'react';
-import { apiWorkspaceCreateBoard, apiWorkspaceGetAllBoardByUser } from '../services/api';
+import { Button, Dialog, DialogContent, DialogTitle, Stack, TextField } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { apiUserAllWorkspaceByUser, apiUserCreateWorkspace, apiWorkspaceCreateBoard } from '../services/api';
 import { BoardForm } from '../components/BoardForm';
-import { UserContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import Workspace from '../components/Workspace';
+import { getAuth } from 'firebase/auth';
 
 const UserBoards = () => {
     const navigate = useNavigate();
+    const auth = getAuth();
     const [showBoardForm, setShowBoardForm] = useState(false);
-    const [boardsData, setBoardsData] = useState([]);
-    const { user } = useContext(UserContext);
+    const [workspacesData, setWorkspacesData] = useState([]);
+    const [currentWorkspace, setCurrentWorkspace] = useState(null);
 
-    async function fetchBoards (userId) {
-        console.log(`Fetching user ${userId} boards`);
-        // const res = await apiWorkspaceGetAllBoardByUser(userId);
-
-        setBoardsData(res.data);
-        // onResponse();
-        console.log("boards: " + JSON.stringify(res.data, null, 2));
-
-        // return res;
+    async function fetchWorkspaces(userId) {
+        const res = await apiUserAllWorkspaceByUser(userId);
+        setWorkspacesData(res.data);
     }
 
-    async function createBoard (board, onBoardCreated) {
+    async function createBoard(board, onBoardCreated) {
+        board.workspace = currentWorkspace;
         const res = await apiWorkspaceCreateBoard(board);
         onBoardCreated(res.data);
 
-    }
-
-    function handleBoardClick () {
-        navigate('/board');
+    async function createWorkspace(workspace, onWorkspaceCreated) {
+        const res = await apiUserCreateWorkspace(workspace);
+        onWorkspaceCreated(res.data);
     }
 
     useEffect(() => {
-        fetchBoards(user.uid);
-    }, [user]);
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+            fetchWorkspaces(currentUser.uid);
+        }
+    }, [auth]);
 
     return (
         <div>
             <Dialog
-                open={ showBoardForm }
-                onClose={ () => setShowBoardForm(false) }>
-                <DialogTitle>
-                    Create Board
-                </DialogTitle>
+                open={showBoardForm}
+                onClose={() => setShowBoardForm(false)}>
+                <DialogTitle>Create Board</DialogTitle>
                 <DialogContent>
                     <BoardForm
-                        onBoardFormSummited={ (newBoard) => {
-                            newBoard.userId = user.uid;
-                            createBoard(newBoard, () => {
-                                setShowBoardForm(false);
-                                fetchBoards(user.uid);
-                            });
-                        } }
+                        onBoardFormSummited={(newBoard) => {
+                            const currentUser = auth.currentUser;
+                            if (currentUser) {
+                                newBoard.userId = currentUser.uid;
+                                createBoard(newBoard, () => {
+                                    setShowBoardForm(false);
+                                    fetchWorkspaces(currentUser.uid);
+                                });
+                            }
+                        }}
                     />
                 </DialogContent>
             </Dialog>
-            <Stack
-                direction='row'
-                spacing={ 3 }
-                sx={ {
-                    p: 2,
-                    display: "flex",
-                    flexDirection: "row",
-                    height: 100,
-                    overflow: "hidden",
-                    overflowX: "scroll",
-                } }>
-                {
-                    boardsData.map((board, index) => {
-                        return (
-                            <Button
-                                size='large'
-                                onClick={ handleBoardClick }
-                                variant="contained"
-                                sx={ {
-                                    flexGrow: 0,
-                                    flexShrink: 0,
-                                    width: '200px'
-                                } } >
-                                { board.title }
-                            </Button>);
-                    })
-                }
-                <Button
-                    size='large'
-                    variant='outlined'
-                    onClick={ () => setShowBoardForm(true) }
-                    sx={ {
-                        flexGrow: 0,
-                        flexShrink: 0,
-                        width: '200px'
-                    } } >
-                    Tạo bảng mới
-                </Button>
+
+            <Stack>
+                {workspacesData.map((workspace, index) => (
+                    <Workspace
+                        key={index}
+                        workspace={workspace}
+                        onClickCreate={(id) => {
+                            setCurrentWorkspace(id);
+                            setShowBoardForm(true);
+                        }}
+                    />
+                ))}
             </Stack>
-        </div >
+
+            <Button
+                size="large"
+                variant="outlined"
+                onClick={() => {
+                    const currentUser = auth.currentUser;
+                    if (currentUser) {
+                        createWorkspace({ userId: currentUser.uid }, () => fetchWorkspaces(currentUser.uid));
+                    }
+                }}
+                sx={{
+                    flexGrow: 0,
+                    flexShrink: 0,
+                    width: '200px',
+                    color: 'red',
+                }}>
+                New workspace
+            </Button>
+            <TextField label="BoardId" variant="outlined" />
+        </div>
     );
 };
 
