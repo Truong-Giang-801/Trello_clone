@@ -22,7 +22,6 @@ const UserBoards = () => {
         board.workspace = currentWorkspace;
         const res = await apiWorkspaceCreateBoard(board);
         onBoardCreated(res.data);
-    }
 
     async function createWorkspace(workspace, onWorkspaceCreated) {
         const res = await apiUserCreateWorkspace(workspace);

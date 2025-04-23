@@ -5,6 +5,7 @@ import PublicBoards from './pages/PublicBoards';
 import UserBoards from './pages/UserBoards';
 import Project from './pages/Project';
 import Login from './pages/Login';
+import Register from './pages/Register'
 import Header from './components/Header';
 import { getAuth } from 'firebase/auth';
 import BoardPage from './pages/BoardPage';
@@ -28,11 +29,12 @@ function App () {
       <Routes>
         <Route path="/">
           <Route index element={ <HomePage /> } />
-          <Route path="public-boards" element={ <PublicBoards /> } />
-          <Route path="user-boards" element={ <UserBoards /> } />
+          <Route path="public" element={ <PublicBoards /> } />
+          <Route path="private" element={ <UserBoards /> } />
+          <Route path="workspace" element={ <Project /> } />
           <Route path="board" element={ <BoardPage /> } />
-          <Route path="projects" element={ <Project /> } />
           <Route path="login" element={ <Login /> } />
+          <Route path="register" element={ <Register /> } />
 
           {/* <Route path="*" element={<NoPage />} /> */ }
         </Route>

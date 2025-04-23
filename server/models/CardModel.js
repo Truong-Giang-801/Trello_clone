@@ -1,21 +1,29 @@
-class CardModel {
+import mongoose from "mongoose";
+
+const CardSchema = new mongoose.Schema({
+  title: String,
+  position: Number,
+  listId: String,
+  dueDate: Date,
+  assignMember: [String],
+});
+
+export const CardMongoose = mongoose.model('Card', CardSchema);
+
+export class CardModel {
   constructor({
     title = '',
     position = 0,
-    dueDate = { _seconds: 0, _nanoseconds: 0 },
+    listId = '',
+    dueDate = Date.now(),
+    assignMember = [],
   } = {}) {
     this.title = title;
     this.position = position;
+    this.listId = listId;
     this.dueDate = dueDate;
-  }
-
-  editCard () {
-
-  }
-
-  assignMember () {
-
+    this.assignMember = assignMember;
   }
 }
 
-module.exports = { CardModel };
+export default CardModel;

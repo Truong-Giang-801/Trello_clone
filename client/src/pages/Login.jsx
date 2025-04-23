@@ -1,18 +1,26 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
+  sendPasswordResetEmail
 } from "firebase/auth";
-import { auth, googleProvider } from "../firebase";
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Stack,
+} from "@mui/material";
+import { auth } from "../firebase";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
       await syncUserToBackend(result.user);
@@ -49,7 +57,8 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleForgotPassword = async () => {
+
     try {
       const result = await signInWithPopup(auth, googleProvider);
       await syncUserToBackend(result.user);
@@ -59,88 +68,71 @@ const Login = () => {
     }
   };
 
+
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>Welcome! Please Login</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        style={styles.input}
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        style={styles.input}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-
-      <div style={styles.buttonRow}>
-        <button style={styles.button} onClick={handleLogin}>
+    <Container maxWidth="sm">
+      <Box
+        sx={{
+          mt: 8,
+          p: 4,
+          border: "1px solid #ddd",
+          borderRadius: "12px",
+          boxShadow: 3,
+          backgroundColor: "white",
+        }}
+      >
+        <Typography variant="h4" component="h1" gutterBottom align="center">
           Login
-        </button>
-        <button style={styles.button} onClick={handleRegister}>
-          Register
-        </button>
-      </div>
+        </Typography>
 
-      <hr style={{ margin: "20px 0" }} />
+        <form onSubmit={handleLogin}>
+          <Stack spacing={2}>
+            <TextField
+              type="email"
+              label="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              fullWidth
+              variant="outlined"
+            />
+            <TextField
+              type="password"
+              label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              fullWidth
+              variant="outlined"
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              size="large"
+            >
+              Login
+            </Button>
+          </Stack>
+        </form>
 
-      <button style={styles.googleButton} onClick={handleGoogleLogin}>
-        Sign in with Google
-      </button>
-    </div>
+
+        <Typography variant="body2" align="center" sx={{ mt: 3 }}>
+          Don't have an account?{" "}
+          <Link to="/register" style={{ textDecoration: "none" }}>
+            Register here
+          </Link>
+        </Typography>
+        <Button
+          onClick={handleForgotPassword}
+          sx={{ mt: 1, width: "100%" }}
+          color="secondary"
+        >
+          Forgot Password?
+        </Button>
+      </Box>
+    </Container>
   );
-};
-
-const styles = {
-  container: {
-    width: "300px",
-    margin: "60px auto",
-    padding: "20px",
-    borderRadius: "8px",
-    boxShadow: "0px 0px 8px rgba(0,0,0,0.1)",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    background: "#fff",
-  },
-  title: {
-    marginBottom: "20px",
-  },
-  input: {
-    width: "100%",
-    padding: "10px",
-    marginBottom: "12px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
-    fontSize: "14px",
-  },
-  buttonRow: {
-    display: "flex",
-    gap: "10px",
-    marginBottom: "20px",
-  },
-  button: {
-    flex: 1,
-    padding: "10px",
-    borderRadius: "4px",
-    border: "none",
-    background: "#007bff",
-    color: "#fff",
-    cursor: "pointer",
-  },
-  googleButton: {
-    width: "100%",
-    padding: "10px",
-    borderRadius: "4px",
-    border: "none",
-    background: "#db4437",
-    color: "#fff",
-    cursor: "pointer",
-  },
 };
 
 export default Login;
