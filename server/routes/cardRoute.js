@@ -1,5 +1,5 @@
-const express = require('express');
-const cardController = require('../controllers/cardController');
+import express from 'express';
+import cardController from '../controllers/cardController.js';
 const router = express.Router();
 
 router.get('/:cardId', cardController.getCardById);
@@ -9,4 +9,4 @@ router.delete('/:cardId', cardController.deleteCard);
 router.patch('/:cardId/assign', cardController.assignUser);
 router.put('/:cardId', cardController.editCard);
 
-module.exports = router;
+export default router;

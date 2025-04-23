@@ -4,18 +4,18 @@ import ListService from "../services/ListService.js";
 const listService = new ListService();
 
 // GET /:listId → Lấy list theo Id
-export async function getListById(req, res) {
-    try {
-      const { listId } = req.params;
-      const list = await listService.getListById(listId);
-      res.status(200).json(list);
-    } catch (error) {
-      console.error("Error getting list:", error);
-      res.status(500).send("Internal server error");
-    }
+export async function getListById (req, res) {
+  try {
+    const { listId } = req.params;
+    const list = await listService.getListById(listId);
+    res.status(200).json(list);
+  } catch (error) {
+    console.error("Error getting list:", error);
+    res.status(500).send("Internal server error");
   }
+}
 
-export async function createList(req, res) {
+export async function createList (req, res) {
   try {
     const list = new ListModel(req.body);
     const createdList = await listService.createList(list);
@@ -27,7 +27,7 @@ export async function createList(req, res) {
 }
 
 // GET /:listId → Lấy list theo Board 
-export async function getAllListByBoard(req, res) {
+export async function getAllListByBoard (req, res) {
   try {
     const { boardId } = req.params;
     const lists = await listService.getAllListByList(boardId);
@@ -38,7 +38,7 @@ export async function getAllListByBoard(req, res) {
   }
 }
 
-export async function deleteList(req, res) {
+export async function deleteList (req, res) {
   try {
     const { listId } = req.params;
     const deleted = await listService.deleteList(listId);
@@ -50,7 +50,7 @@ export async function deleteList(req, res) {
 }
 
 // PUT /lists/:listId
-export async function editList(req, res) {
+export async function editList (req, res) {
   try {
     const { listId } = req.params;
     const updated = await listService.editList(listId, req.body);
@@ -60,3 +60,12 @@ export async function editList(req, res) {
     res.status(500).send("Internal server error");
   }
 }
+
+
+export default {
+  getListById,
+  createList,
+  getAllListByBoard,
+  deleteList,
+  editList
+};

@@ -5,7 +5,8 @@ const router = express.Router();
 
 router.post('/', boardController.createBoard);
 router.get('/', boardController.getAllBoardPublic);
-router.get('/:workspaceId', boardController.getAllBoardByWorkspace);
+router.get('/:boardId', boardController.getBoard);
+router.get('/all/:workspaceId', boardController.getAllBoardByWorkspace);
 router.delete('/:boardId', boardController.deleteBoard);
 
 export default router;

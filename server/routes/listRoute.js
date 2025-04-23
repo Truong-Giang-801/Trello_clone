@@ -1,5 +1,5 @@
-const express = require('express');
-const listController = require('../controllers/listController');
+import express from 'express';
+import listController from '../controllers/listController.js';
 const router = express.Router();
 
 router.get('/:listId', listController.getListById);
@@ -8,4 +8,4 @@ router.get('/lists/:boardId', listController.getAllListByBoard);
 router.delete('/:listId', listController.deleteList);
 router.put('/:listId', listController.editList);
 
-module.exports = router;
+export default router;

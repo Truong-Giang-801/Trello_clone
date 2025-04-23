@@ -4,18 +4,18 @@ import CardService from "../services/CardService.js";
 const cardService = new CardService();
 
 // GET /:cardId → Lấy card theo Id
-export async function getCardById(req, res) {
-    try {
-      const { cardId } = req.params;
-      const card = await cardService.getCardById(cardId);
-      res.status(200).json(card);
-    } catch (error) {
-      console.error("Error getting card:", error);
-      res.status(500).send("Internal server error");
-    }
+export async function getCardById (req, res) {
+  try {
+    const { cardId } = req.params;
+    const card = await cardService.getCardById(cardId);
+    res.status(200).json(card);
+  } catch (error) {
+    console.error("Error getting card:", error);
+    res.status(500).send("Internal server error");
   }
+}
 
-export async function createCard(req, res) {
+export async function createCard (req, res) {
   try {
     const card = new CardModel(req.body);
     const createdCard = await cardService.createCard(card);
@@ -27,7 +27,7 @@ export async function createCard(req, res) {
 }
 
 // GET /:listId → Lấy card theo List 
-export async function getAllCardByList(req, res) {
+export async function getAllCardByList (req, res) {
   try {
     const { listId } = req.params;
     const cards = await cardService.getAllCardByList(listId);
@@ -38,7 +38,7 @@ export async function getAllCardByList(req, res) {
   }
 }
 
-export async function deleteCard(req, res) {
+export async function deleteCard (req, res) {
   try {
     const { cardId } = req.params;
     const deleted = await cardService.deleteCard(cardId);
@@ -50,7 +50,7 @@ export async function deleteCard(req, res) {
 }
 
 // PATCH /cards/:cardId/assign
-export async function assignUser(req, res) {
+export async function assignUser (req, res) {
   try {
     const { cardId } = req.params;
     const { userId } = req.body;
@@ -64,7 +64,7 @@ export async function assignUser(req, res) {
 }
 
 // PUT /cards/:cardId
-export async function editCard(req, res) {
+export async function editCard (req, res) {
   try {
     const { cardId } = req.params;
     const updated = await cardService.editCard(cardId, req.body);
@@ -74,3 +74,12 @@ export async function editCard(req, res) {
     res.status(500).send("Internal server error");
   }
 }
+
+export default {
+  getCardById,
+  createCard,
+  getAllCardByList,
+  assignUser,
+  deleteCard,
+  editCard,
+};

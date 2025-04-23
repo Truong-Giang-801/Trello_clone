@@ -9,6 +9,7 @@ class BoardService {
 
     async createBoard (board) {
         try {
+            // console.log(JSON.stringify(board));
             const ref = board.toMongoDB();
             const res = ref.save();
             return res;
@@ -17,9 +18,18 @@ class BoardService {
         }
     }
 
+    async getBoard (boardId) {
+        try {
+            const ref = await BoardMongoose.findById(boardId).exec();
+            return ref;
+        } catch (error) {
+            return error;
+        }
+    }
+
     async getAllBoardByWorkspace (workspaceId) {
         try {
-            const ref = await BoardMongoose.find({ workspace: workspaceId }).exec();
+            const ref = await BoardMongoose.find({ workspaceId: workspaceId }).exec();
             return ref;
         } catch (error) {
             return error;
@@ -28,10 +38,8 @@ class BoardService {
 
     async getAllPublicBoard () {
         try {
-            const ref = await BoardMongoose.find({ workspace: 'public' }).exec();
+            const ref = await BoardMongoose.find({ visibility: 'public' }).exec();
             return ref;
-            // const userBoards = this.collection.filter((board) => board.visibility === true);
-            // return userBoards;
         } catch (error) {
             return error;
         }

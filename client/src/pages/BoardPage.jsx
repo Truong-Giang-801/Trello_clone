@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
-    Grid,
     Box,
     Button,
     Typography,
@@ -21,9 +20,11 @@ import {
 // import DeleteIcon from '@mui/icons-material/Delete';
 // import EditIcon from '@mui/icons-material/Edit';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-// import TaskForm from './TaskForm';
-// import TaskManagementFeedback from './TaskManagementFeedback';
 import { getAuth } from 'firebase/auth';
+import { useParams } from 'react-router-dom';
+import { apiBoardGetById, apiGetCard } from '../services/api';
+import CardForm from '../components/CardForm';
+import DroppableList from '../components/DroppableList';
 
 const columnColors = {
     expired: {
@@ -46,6 +47,7 @@ const columnColors = {
 
 const BoardPage = () => {
     const auth = getAuth();
+    const { boardId } = useParams();
 
     const [tasks, setTasks] = useState({
         expired: [],
@@ -59,162 +61,169 @@ const BoardPage = () => {
     const [filterStatus, setFilterStatus] = useState('all');
     const [filterPriority, setFilterPriority] = useState('all');
     const [sortOrder, setSortOrder] = useState('asc');
-    const [analysisFeedback, setAnalysisFeedback] = useState('');
+
+    const [boardData, setBoardData] = useState();
 
     useEffect(() => {
-        const fetchTasks = async () => {
-            const currentUser = auth.currentUser;
-            if (!currentUser) return;
+        // const fetchTasks = async () => {
+        //     const currentUser = auth.currentUser;
+        //     if (!currentUser) return;
 
-            try {
-                const response = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
+        //     try {
+        //         const response = apiGetCard();
 
-                console.log('API Response:', response.data);
+        //         // console.log('API Response:', response.data);
 
-                const today = new Date();
-                const categorizedTasks = {
-                    expired: [],
-                    todo: [],
-                    doing: [],
-                    done: [],
-                };
+        //         const today = new Date();
+        //         const categorizedTasks = {
+        //             expired: [],
+        //             todo: [],
+        //             doing: [],
+        //             done: [],
+        //         };
 
-                for (const task of response.data) {
-                    if (task.userId !== currentUser.uid) continue;
+        //         for (const task of response.data) {
+        //             if (task.userId !== currentUser.uid) continue;
 
-                    const dueDate = new Date(task.dueDate._seconds * 1000);
-                    if (!task.isCompleted && dueDate < today) {
-                        task.status = 'Expired';
-                        task.statusEnum = 0;
-                        await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, {
-                            ...task,
-                            status: 'Expired',
-                            statusEnum: 0,
-                        });
-                    }
+        //             const dueDate = new Date(task.dueDate._seconds * 1000);
+        //             if (!task.isCompleted && dueDate < today) {
+        //                 task.status = 'Expired';
+        //                 task.statusEnum = 0;
+        //                 await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, {
+        //                     ...task,
+        //                     status: 'Expired',
+        //                     statusEnum: 0,
+        //                 });
+        //             }
 
-                    if (task.statusEnum === 0) {
-                        categorizedTasks.expired.push(task);
-                    } else if (task.statusEnum === 1) {
-                        categorizedTasks.todo.push(task);
-                    } else if (task.statusEnum === 2) {
-                        categorizedTasks.doing.push(task);
-                    } else if (task.statusEnum === 3) {
-                        categorizedTasks.done.push(task);
-                    } else {
-                        categorizedTasks.todo.push(task);
-                    }
-                }
+        //             if (task.statusEnum === 0) {
+        //                 categorizedTasks.expired.push(task);
+        //             } else if (task.statusEnum === 1) {
+        //                 categorizedTasks.todo.push(task);
+        //             } else if (task.statusEnum === 2) {
+        //                 categorizedTasks.doing.push(task);
+        //             } else if (task.statusEnum === 3) {
+        //                 categorizedTasks.done.push(task);
+        //             } else {
+        //                 categorizedTasks.todo.push(task);
+        //             }
+        //         }
 
-                console.log('Categorized Tasks:', categorizedTasks);
-                setTasks(categorizedTasks);
-            } catch (error) {
-                console.error('Error fetching tasks:', error);
-            }
-        };
+        //         console.log('Categorized Tasks:', categorizedTasks);
+        //         setTasks(categorizedTasks);
+        //     } catch (error) {
+        //         console.error('Error fetching tasks:', error);
+        //     }
+        // };
 
-        fetchTasks();
-    }, [auth]);
+        // fetchTasks();
+        fetchBoard();
+    }, [boardId]);
 
-    const formatDueDate = (dueDate) => {
-        const date = new Date(dueDate._seconds * 1000);
-        return date.toLocaleDateString('en-US');
-    };
+    // useEffect(() => fetchBoard(), [boardId]);
 
-    const updateTaskOnServer = async (task) => {
-        try {
-            await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, task);
-        } catch (error) {
-            console.error('Error updating task on the server:', error);
-        }
-    };
+    async function fetchBoard () {
+        const res = await apiBoardGetById(boardId);
 
-    const handleCheckboxChange = async (taskId, isChecked) => {
-        try {
-            const updatedTasks = { ...tasks };
-            let updatedTask;
+        setBoardData(res.data);
+        console.log(JSON.stringify(res.data));
+    }
 
-            for (let status in updatedTasks) {
-                const taskIndex = updatedTasks[status].findIndex(task => task.id === taskId);
-                if (taskIndex !== -1) {
-                    updatedTask = updatedTasks[status][taskIndex];
-                    updatedTasks[status].splice(taskIndex, 1);
-                    break;
-                }
-            }
+    // const formatDueDate = (dueDate) => {
+    //     const date = new Date(dueDate._seconds * 1000);
+    //     return date.toLocaleDateString('en-US');
+    // };
 
-            if (updatedTask) {
-                const today = new Date();
-                const dueDate = new Date(updatedTask.dueDate._seconds * 1000);
+    // const updateTaskOnServer = async (task) => {
+    //     try {
+    //         await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, task);
+    //     } catch (error) {
+    //         console.error('Error updating task on the server:', error);
+    //     }
+    // };
 
-                updatedTask.isCompleted = isChecked;
-                if (isChecked) {
-                    updatedTask.status = 'Done';
-                    updatedTask.statusEnum = 3;
-                    updatedTasks.done.push(updatedTask);
-                } else {
-                    if (dueDate < today) {
-                        updatedTask.status = 'Expired';
-                        updatedTask.statusEnum = 0;
-                        updatedTasks.expired.push(updatedTask);
-                    } else {
-                        updatedTask.status = 'Todo';
-                        updatedTask.statusEnum = 1;
-                        updatedTasks.todo.push(updatedTask);
-                    }
-                }
+    // const handleCheckboxChange = async (taskId, isChecked) => {
+    //     try {
+    //         const updatedTasks = { ...tasks };
+    //         let updatedTask;
 
-                setTasks(updatedTasks);
-                await updateTaskOnServer(updatedTask);
-            }
-        } catch (error) {
-            console.error('Error updating task:', error);
-        }
-    };
+    //         for (let status in updatedTasks) {
+    //             const taskIndex = updatedTasks[status].findIndex(task => task.id === taskId);
+    //             if (taskIndex !== -1) {
+    //                 updatedTask = updatedTasks[status][taskIndex];
+    //                 updatedTasks[status].splice(taskIndex, 1);
+    //                 break;
+    //             }
+    //         }
 
-    const handleDeleteTask = async (taskId) => {
-        try {
-            setTasks(prevTasks => {
-                const updatedTasks = { ...prevTasks };
-                for (let status in updatedTasks) {
-                    updatedTasks[status] = updatedTasks[status].filter(task => task.id !== taskId);
-                }
-                return updatedTasks;
-            });
+    //         if (updatedTask) {
+    //             const today = new Date();
+    //             const dueDate = new Date(updatedTask.dueDate._seconds * 1000);
 
-            await axios.delete(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${taskId}`);
-        } catch (error) {
-            console.error('Error deleting task:', error);
-        }
-    };
+    //             updatedTask.isCompleted = isChecked;
+    //             if (isChecked) {
+    //                 updatedTask.status = 'Done';
+    //                 updatedTask.statusEnum = 3;
+    //                 updatedTasks.done.push(updatedTask);
+    //             } else {
+    //                 if (dueDate < today) {
+    //                     updatedTask.status = 'Expired';
+    //                     updatedTask.statusEnum = 0;
+    //                     updatedTasks.expired.push(updatedTask);
+    //                 } else {
+    //                     updatedTask.status = 'Todo';
+    //                     updatedTask.statusEnum = 1;
+    //                     updatedTasks.todo.push(updatedTask);
+    //                 }
+    //             }
 
-    const handleEditTask = async (updatedTask) => {
-        try {
-            const updatedTasks = { ...tasks };
-            for (let status in updatedTasks) {
-                const taskIndex = updatedTasks[status].findIndex(task => task.id === updatedTask.id);
-                if (taskIndex !== -1) {
-                    updatedTasks[status][taskIndex] = updatedTask;
-                    break;
-                }
-            }
+    //             setTasks(updatedTasks);
+    //             await updateTaskOnServer(updatedTask);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error updating task:', error);
+    //     }
+    // };
 
-            setTasks(updatedTasks);
-            await updateTaskOnServer(updatedTask);
-        } catch (error) {
-            console.error('Error editing task:', error);
-        }
-    };
+    // const handleDeleteTask = async (taskId) => {
+    //     try {
+    //         setTasks(prevTasks => {
+    //             const updatedTasks = { ...prevTasks };
+    //             for (let status in updatedTasks) {
+    //                 updatedTasks[status] = updatedTasks[status].filter(task => task.id !== taskId);
+    //             }
+    //             return updatedTasks;
+    //         });
 
-    const handleTaskUpdated = (updatedTask) => {
-        handleEditTask(updatedTask);
-        setShowTaskForm(false);
-        setEditingTask(null);
-    };
+    //         await axios.delete(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${taskId}`);
+    //     } catch (error) {
+    //         console.error('Error deleting task:', error);
+    //     }
+    // };
+
+    // const handleEditTask = async (updatedTask) => {
+    //     try {
+    //         const updatedTasks = { ...tasks };
+    //         for (let status in updatedTasks) {
+    //             const taskIndex = updatedTasks[status].findIndex(task => task.id === updatedTask.id);
+    //             if (taskIndex !== -1) {
+    //                 updatedTasks[status][taskIndex] = updatedTask;
+    //                 break;
+    //             }
+    //         }
+
+    //         setTasks(updatedTasks);
+    //         await updateTaskOnServer(updatedTask);
+    //     } catch (error) {
+    //         console.error('Error editing task:', error);
+    //     }
+    // };
+
+    // const handleTaskUpdated = (updatedTask) => {
+    //     handleEditTask(updatedTask);
+    //     setShowTaskForm(false);
+    //     setEditingTask(null);
+    // };
 
     const onDragEnd = async (result) => {
         const { destination, source } = result;
@@ -259,79 +268,35 @@ const BoardPage = () => {
         setShowTaskForm(false);
     };
 
-    const analyzeSchedule = async () => {
-        try {
-            const apiKey = process.env.REACT_APP_GEMINI_API_KEY; // Use environment variable
-            if (!apiKey) {
-                throw new Error('API key is missing');
-            }
-            const prompt = generatePrompt(tasks);
-            console.log('You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.\n' + prompt);
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-            const headers = {
-                'Content-Type': 'application/json',
-            };
-
-            const data = {
-                contents: [
-                    {
-                        parts: [{ text: 'You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.\n' + prompt }],
-                    },
-                ],
-            };
-
-            const res = await axios.post(apiUrl, data, { headers });
-            const generatedText = res.data.candidates[0].content.parts[0].text;
-            setAnalysisFeedback(generatedText);
-        } catch (error) {
-            console.error('Error analyzing schedule:', error);
-            setAnalysisFeedback('Failed to analyze schedule. Please try again later.');
-        }
-    };
-
-    const generatePrompt = (tasks) => {
-        let prompt = "Provide feedback on potential adjustments, such as: Warning about overly tight schedules that may lead to burnout. Recommending prioritization changes for improved focus and balance.\n\n";
-
-        for (const status in tasks) {
-            prompt += `${status.toUpperCase()}:\n`;
-            for (const task of tasks[status]) {
-                prompt += `- ${task.title} (Due: ${formatDueDate(task.dueDate)}, Priority: ${task.priority}, Time spent on this task till now: ${task.focusTime} seconds)\n`;
-            }
-            prompt += '\n';
-        }
-
-        return prompt;
-    };
-
     const calculateTotalFocusTime = (task) => {
         if (!task.focusSessions) return 0;
         return task.focusSessions.reduce((total, session) => total + session.duration, 0);
     };
 
-    const filteredTasks = Object.keys(tasks).reduce((acc, status) => {
-        acc[status] = tasks[status].filter(task => {
-            const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesFilterStatus = filterStatus === 'all' || task.status === filterStatus;
-            const matchesFilterPriority = filterPriority === 'all' || task.priority === filterPriority;
-            return matchesSearch && matchesFilterStatus && matchesFilterPriority;
-        });
-        return acc;
-    }, {});
+    // const filteredTasks = Object.keys(tasks).reduce((acc, status) => {
+    //     acc[status] = tasks[status].filter(task => {
+    //         const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+    //         const matchesFilterStatus = filterStatus === 'all' || task.status === filterStatus;
+    //         const matchesFilterPriority = filterPriority === 'all' || task.priority === filterPriority;
+    //         return matchesSearch && matchesFilterStatus && matchesFilterPriority;
+    //     });
+    //     return acc;
+    // }, {});
 
-    const sortedTasks = Object.keys(filteredTasks).reduce((acc, status) => {
-        acc[status] = filteredTasks[status].sort((a, b) => {
-            if (sortOrder === 'asc') {
-                return new Date(a.dueDate._seconds * 1000) - new Date(b.dueDate._seconds * 1000);
-            } else {
-                return new Date(b.dueDate._seconds * 1000) - new Date(a.dueDate._seconds * 1000);
-            }
-        });
-        return acc;
-    }, {});
+    // const sortedTasks = Object.keys(filteredTasks).reduce((acc, status) => {
+    //     acc[status] = filteredTasks[status].sort((a, b) => {
+    //         if (sortOrder === 'asc') {
+    //             return new Date(a.dueDate._seconds * 1000) - new Date(b.dueDate._seconds * 1000);
+    //         } else {
+    //             return new Date(b.dueDate._seconds * 1000) - new Date(a.dueDate._seconds * 1000);
+    //         }
+    //     });
+    //     return acc;
+    // }, {});
 
     return (
         <Box sx={ { padding: 3 } }>
-            <Typography variant="h4" gutterBottom>Task List</Typography>
+            <Typography variant="h4" gutterBottom>{ boardData ? boardData.title : '' }</Typography>
 
             <Box sx={ { display: 'flex', gap: 2, marginBottom: 2 } }>
                 <Button
@@ -343,28 +308,16 @@ const BoardPage = () => {
                 >
                     Create Task
                 </Button>
-                <Button
-                    variant="outlined"
-                    onClick={ analyzeSchedule }
-                >
-                    Analyze Schedule
-                </Button>
             </Box>
-
-            {/* { analysisFeedback && (
-                <TaskManagementFeedback analysisFeedback={ analysisFeedback } />
-            ) } */}
 
             <Dialog open={ showTaskForm } onClose={ () => setShowTaskForm(false) }>
                 <DialogTitle>
                     { editingTask ? 'Edit Task' : 'Create Task' }
                 </DialogTitle>
                 <DialogContent>
-                    {/* <TaskForm
-                        onTaskCreated={ handleTaskCreated }
-                        onTaskUpdated={ handleTaskUpdated }
-                        task={ editingTask }
-                    /> */}
+                    <CardForm>
+
+                    </CardForm>
                 </DialogContent>
             </Dialog>
 
@@ -410,98 +363,99 @@ const BoardPage = () => {
             <DragDropContext onDragEnd={ onDragEnd }>
                 <Stack direction="row" container spacing={ 2 }>
                     { ['expired', 'todo', 'doing', 'done'].map((status) => (
-                        <Stack item xs={ 12 } sm={ 6 } md={ 3 } key={ status }>
-                            <Droppable droppableId={ status }>
-                                { (provided) => (
-                                    <Box
-                                        ref={ provided.innerRef }
-                                        { ...provided.droppableProps }
-                                        sx={ {
-                                            border: '1px solid',
-                                            borderColor: columnColors[status].border,
-                                            borderRadius: 2,
-                                            padding: 2,
-                                            backgroundColor: columnColors[status].background
-                                        } }
-                                    >
-                                        <Typography variant="h6">
-                                            { status.charAt(0).toUpperCase() + status.slice(1) }
-                                        </Typography>
-                                        { sortedTasks[status].map((task, index) => (
-                                            <Draggable
-                                                key={ task.id }
-                                                draggableId={ task.id }
-                                                index={ index }
-                                                isDragDisabled={ status === 'expired' }
-                                            >
-                                                { (provided) => (
-                                                    <Card
-                                                        ref={ provided.innerRef }
-                                                        { ...provided.draggableProps }
-                                                        { ...provided.dragHandleProps }
-                                                        sx={ {
-                                                            marginBottom: 1,
-                                                            boxShadow: 2
-                                                        } }
-                                                    >
-                                                        <CardContent>
-                                                            <Typography variant="subtitle1" sx={ { fontWeight: 'bold', fontSize: '1.25rem' } }>
-                                                                { task.title }
-                                                            </Typography>
-                                                            <Typography variant="body2">
-                                                                { task.description }
-                                                            </Typography>
-                                                            <Box sx={ { display: 'flex', justifyContent: 'space-between' } }>
-                                                                <Typography variant="caption">
-                                                                    Due: { formatDueDate(task.dueDate) }
-                                                                </Typography>
-                                                                <Typography variant="caption">
-                                                                    Priority: { task.priority }
-                                                                </Typography>
-                                                                <Typography variant="caption">
-                                                                    Focus Time: { Math.round(calculateTotalFocusTime(task) / 60) } minutes
-                                                                </Typography>
-                                                            </Box>
-                                                            <Box sx={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }>
-                                                                <FormControlLabel
-                                                                    control={
-                                                                        <Checkbox
-                                                                            checked={ task.isCompleted }
-                                                                            onChange={ (e) => handleCheckboxChange(task.id, e.target.checked) }
-                                                                        />
-                                                                    }
-                                                                    label={ task.isCompleted ? 'Completed' : 'Incomplete' }
-                                                                />
-                                                                <Box>
-                                                                    <IconButton
-                                                                        onClick={ (e) => {
-                                                                            e.stopPropagation();
-                                                                            setEditingTask(task);
-                                                                            setShowTaskForm(true);
-                                                                        } }
-                                                                    >
-                                                                        {/* <EditIcon /> */ }
-                                                                    </IconButton>
-                                                                    <IconButton
-                                                                        onClick={ (e) => {
-                                                                            e.stopPropagation();
-                                                                            handleDeleteTask(task.id);
-                                                                        } }
-                                                                    >
-                                                                        {/* <DeleteIcon /> */ }
-                                                                    </IconButton>
-                                                                </Box>
-                                                            </Box>
-                                                        </CardContent>
-                                                    </Card>
-                                                ) }
-                                            </Draggable>
-                                        )) }
-                                        { provided.placeholder }
-                                    </Box>
-                                ) }
-                            </Droppable>
-                        </Stack>
+                        // <Stack item xs={ 12 } sm={ 6 } md={ 3 } key={ status }>
+                        //     <Droppable droppableId={ status }>
+                        //         { (provided) => (
+                        //             <Box
+                        //                 ref={ provided.innerRef }
+                        //                 { ...provided.droppableProps }
+                        //                 sx={ {
+                        //                     border: '1px solid',
+                        //                     borderColor: columnColors[status].border,
+                        //                     borderRadius: 2,
+                        //                     padding: 2,
+                        //                     backgroundColor: columnColors[status].background
+                        //                 } }
+                        //             >
+                        //                 <Typography variant="h6">
+                        //                     { status.charAt(0).toUpperCase() + status.slice(1) }
+                        //                 </Typography>
+                        //                 { sortedTasks[status].map((task, index) => (
+                        //                     <Draggable
+                        //                         key={ task.id }
+                        //                         draggableId={ task.id }
+                        //                         index={ index }
+                        //                         isDragDisabled={ status === 'expired' }
+                        //                     >
+                        //                         { (provided) => (
+                        //                             <Card
+                        //                                 ref={ provided.innerRef }
+                        //                                 { ...provided.draggableProps }
+                        //                                 { ...provided.dragHandleProps }
+                        //                                 sx={ {
+                        //                                     marginBottom: 1,
+                        //                                     boxShadow: 2
+                        //                                 } }
+                        //                             >
+                        //                                 <CardContent>
+                        //                                     <Typography variant="subtitle1" sx={ { fontWeight: 'bold', fontSize: '1.25rem' } }>
+                        //                                         { task.title }
+                        //                                     </Typography>
+                        //                                     <Typography variant="body2">
+                        //                                         { task.description }
+                        //                                     </Typography>
+                        //                                     <Box sx={ { display: 'flex', justifyContent: 'space-between' } }>
+                        //                                         <Typography variant="caption">
+                        //                                             Due: { formatDueDate(task.dueDate) }
+                        //                                         </Typography>
+                        //                                         <Typography variant="caption">
+                        //                                             Priority: { task.priority }
+                        //                                         </Typography>
+                        //                                         <Typography variant="caption">
+                        //                                             Focus Time: { Math.round(calculateTotalFocusTime(task) / 60) } minutes
+                        //                                         </Typography>
+                        //                                     </Box>
+                        //                                     <Box sx={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }>
+                        //                                         <FormControlLabel
+                        //                                             control={
+                        //                                                 <Checkbox
+                        //                                                     checked={ task.isCompleted }
+                        //                                                     onChange={ (e) => handleCheckboxChange(task.id, e.target.checked) }
+                        //                                                 />
+                        //                                             }
+                        //                                             label={ task.isCompleted ? 'Completed' : 'Incomplete' }
+                        //                                         />
+                        //                                         <Box>
+                        //                                             <IconButton
+                        //                                                 onClick={ (e) => {
+                        //                                                     e.stopPropagation();
+                        //                                                     setEditingTask(task);
+                        //                                                     setShowTaskForm(true);
+                        //                                                 } }
+                        //                                             >
+                        //                                                 {/* <EditIcon /> */ }
+                        //                                             </IconButton>
+                        //                                             <IconButton
+                        //                                                 onClick={ (e) => {
+                        //                                                     e.stopPropagation();
+                        //                                                     handleDeleteTask(task.id);
+                        //                                                 } }
+                        //                                             >
+                        //                                                 {/* <DeleteIcon /> */ }
+                        //                                             </IconButton>
+                        //                                         </Box>
+                        //                                     </Box>
+                        //                                 </CardContent>
+                        //                             </Card>
+                        //                         ) }
+                        //                     </Draggable>
+                        //                 )) }
+                        //                 { provided.placeholder }
+                        //             </Box>
+                        //         ) }
+                        //     </Droppable>
+                        // </Stack>
+                        <DroppableList status={ status } />
                     )) }
                 </Stack>
             </DragDropContext>
