@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
     Grid,
@@ -23,7 +23,7 @@ import {
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 // import TaskForm from './TaskForm';
 // import TaskManagementFeedback from './TaskManagementFeedback';
-import { UserContext } from '../context/UserContext';
+import { getAuth } from 'firebase/auth';
 
 const columnColors = {
     expired: {
@@ -45,6 +45,8 @@ const columnColors = {
 };
 
 const BoardPage = () => {
+    const auth = getAuth();
+
     const [tasks, setTasks] = useState({
         expired: [],
         todo: [],
@@ -58,11 +60,11 @@ const BoardPage = () => {
     const [filterPriority, setFilterPriority] = useState('all');
     const [sortOrder, setSortOrder] = useState('asc');
     const [analysisFeedback, setAnalysisFeedback] = useState('');
-    const { user } = useContext(UserContext);
 
     useEffect(() => {
         const fetchTasks = async () => {
-            if (!user) return;
+            const currentUser = auth.currentUser;
+            if (!currentUser) return;
 
             try {
                 const response = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`, {
@@ -82,7 +84,7 @@ const BoardPage = () => {
                 };
 
                 for (const task of response.data) {
-                    if (task.userId !== user.uid) continue;
+                    if (task.userId !== currentUser.uid) continue;
 
                     const dueDate = new Date(task.dueDate._seconds * 1000);
                     if (!task.isCompleted && dueDate < today) {
@@ -116,7 +118,7 @@ const BoardPage = () => {
         };
 
         fetchTasks();
-    }, [user]);
+    }, [auth]);
 
     const formatDueDate = (dueDate) => {
         const date = new Date(dueDate._seconds * 1000);
