@@ -10,20 +10,16 @@ const Header = () => {
   const { user } = useContext(UserContext);
   const buttons = [
     {
-      path: "/",
-      label: "Home Page",
-      requireLogin: false
-    }, {
-      path: "/public-boards",
+      path: "/public",
       label: "Public Boards",
       requireLogin: false
     }, {
-      path: "/user-boards",
-      label: "User Boards",
+      path: "/private",
+      label: "My Boards",
       requireLogin: true
     }, {
-      path: "/projects",
-      label: "Projects",
+      path: "/workspace",
+      label: "My Workspaces",
       requireLogin: true
     },
   ];
