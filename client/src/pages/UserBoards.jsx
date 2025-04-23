@@ -13,7 +13,7 @@ const UserBoards = () => {
 
     async function fetchBoards (userId) {
         console.log(`Fetching user ${userId} boards`);
-        const res = await apiWorkspaceGetAllBoardByUser(userId);
+        // const res = await apiWorkspaceGetAllBoardByUser(userId);
 
         setBoardsData(res.data);
         // onResponse();

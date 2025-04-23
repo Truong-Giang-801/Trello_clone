@@ -6,7 +6,14 @@ const api = axios.create({
 
 export const getTest = () => api.get('/test');
 
-export const apiWorkspaceCreateBoard = (board) => api.post(`/workspace`, board);
-export const apiWorkspaceGetAllBoardByUser = (userId) => api.get(`/workspace/${userId}`);
+export const apiWorkspaceCreateBoard = (board) => api.post(`/board`, board);
+// export const apiWorkspaceDeleteBoard = (boardId) => api.delete(`/workspace/${boardId}`);
+
+export const apiBoardGetAllBoardPublic = () => api.get(`/board`);
+export const apiBoardGetAllBoardByWorkspace = (workspaceId) => api.get(`/board/${workspaceId}`);
+
+export const apiUserCreateWorkspace = (workspace) => api.post(`/workspace`, workspace);
+export const apiUserAllWorkspaceByUser = (userId) => api.get(`/workspace/${userId}`);
+
 
 export default api;

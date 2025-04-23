@@ -10,7 +10,7 @@ import {
   FormControlLabel,
 } from '@mui/material';
 
-export const BoardForm = ({ onBoardFormSummited }) => {
+export const CardForm = ({ onBoardFormSummited }) => {
   const [title, setTitle] = useState('');
   const [visibility, setVisibility] = useState(true);
   const [interactable, setInteractable] = useState(true);
@@ -23,7 +23,6 @@ export const BoardForm = ({ onBoardFormSummited }) => {
       return;
     }
 
-    console.log("visible: " + visibility);
 
     onBoardFormSummited({ title, visibility });
     setTitle('');
@@ -74,14 +73,14 @@ export const BoardForm = ({ onBoardFormSummited }) => {
             <FormControlLabel
               fullWidth
               variant="outlined"
-              // required
+              required
               control={
                 <Switch
                   defaultChecked
                   value={ visibility }
                   disabled={ !interactable }
-                  onChange={ (e) => setVisibility(e.target.checked) } /> }
-              label="Visible" />
+                  onChange={ (e) => setVisibility(e.target.value) } /> }
+              label="Visibility" />
 
             <Button
               type="submit"
@@ -99,4 +98,4 @@ export const BoardForm = ({ onBoardFormSummited }) => {
   );
 };
 
-export default BoardForm;
+export default CardForm;
