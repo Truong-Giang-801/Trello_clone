@@ -9,11 +9,13 @@ export const getTest = () => api.get('/test');
 export const apiWorkspaceCreateBoard = (board) => api.post(`/board`, board);
 // export const apiWorkspaceDeleteBoard = (boardId) => api.delete(`/workspace/${boardId}`);
 
+export const apiBoardGetById = (boardId) => api.get(`/board/${boardId}`);
 export const apiBoardGetAllBoardPublic = () => api.get(`/board`);
-export const apiBoardGetAllBoardByWorkspace = (workspaceId) => api.get(`/board/${workspaceId}`);
+export const apiBoardGetAllBoardByWorkspace = (workspaceId) => api.get(`/board/all/${workspaceId}`);
 
 export const apiUserCreateWorkspace = (workspace) => api.post(`/workspace`, workspace);
 export const apiUserAllWorkspaceByUser = (userId) => api.get(`/workspace/${userId}`);
+export const apiGetCard = 0;
 
 
 export default api;

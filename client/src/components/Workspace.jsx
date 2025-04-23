@@ -1,30 +1,30 @@
-import { Button, Stack } from '@mui/material';
+import { Button, Stack, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { apiBoardGetAllBoardByWorkspace } from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import BoardButton from './BoardButton';
 
 const Workspace = ({ workspace, onClickCreate }) => {
-    const navigate = useNavigate();
     const [boardsData, setBoardsData] = useState([]);
 
     async function fetchBoards () {
-        console.log("Fetching board with workspace id: " + workspace._id);
         const res = await apiBoardGetAllBoardByWorkspace(workspace._id);
+        // console.log(JSON.stringify(res.data));
         setBoardsData(res.data ? res.data : []);
-        console.log("board with workspace id " + workspace._id + " " + JSON.stringify(boardsData, null, 2));
-    }
-
-    function handleBoardClick () {
-        navigate('/board');
     }
 
     useEffect(() => {
         fetchBoards();
-    }, [boardsData]);
+    }, [workspace]);
 
     return (
         <div>
-            <h2> { workspace.title }</h2>
+            <Typography
+                variant="h4"
+                sx={ {
+                    p: 2
+                } }>
+                { workspace.title }
+            </Typography>
             <Stack
                 direction='row'
                 spacing={ 3 }
@@ -36,24 +36,11 @@ const Workspace = ({ workspace, onClickCreate }) => {
                     overflow: "hidden",
                     overflowX: "scroll",
                 } }>
-                {/* { console.log(boardsData) } */ }
                 {
                     boardsData.map((board, index) => {
                         return (
-                            <Button
-                                size='large'
-                                onClick={ handleBoardClick }
-                                variant="contained"
-                                sx={ {
-                                    flexGrow: 0,
-                                    flexShrink: 0,
-                                    width: '200px',
-                                    overflow: ' hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap'
-                                } } >
-                                { board.title }
-                            </Button>);
+                            <BoardButton board={ board } />
+                        );
                     })
                 }
                 <Button
@@ -64,7 +51,11 @@ const Workspace = ({ workspace, onClickCreate }) => {
                     sx={ {
                         flexGrow: 0,
                         flexShrink: 0,
-                        width: '200px'
+                        width: '200px',
+                        height: '100px',
+                        overflow: ' hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
                     } } >
                     Tạo bảng mới
                 </Button>

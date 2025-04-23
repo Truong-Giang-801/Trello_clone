@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "fu09gC6/NWRpEKW70z0yxh4FrzhN0Na14ys3TdZJkJo=",
+  "Source": "UserServiceApi",
+  "BasePath": "_content/UserServiceApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

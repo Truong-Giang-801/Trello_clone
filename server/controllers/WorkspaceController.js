@@ -3,10 +3,10 @@ import WorkspaceModel from '../models/WorkspaceModel.js';
 
 const workspaceService = new WorkspaceService(); // Instantiate the service
 
-async function createWorkspace(req, res) {
+async function createWorkspace (req, res) {
     try {
-        const { id, title, description, userId } = req.body;
-        const workspace = new WorkspaceModel({ id, title, description, userId });
+        const { title, description, ownerId, members } = req.body;
+        const workspace = new WorkspaceModel({ title, description, ownerId, members });
         const createdWorkspace = await workspaceService.createWorkspace(workspace);
         res.status(201).json(createdWorkspace);
     } catch (error) {
@@ -15,10 +15,10 @@ async function createWorkspace(req, res) {
     }
 }
 
-async function getAllWorkspaceByUser(req, res) {
+async function getAllWorkspaceByUser (req, res) {
     try {
-        const { userId } = req.params;
-        const workspaces = await workspaceService.getAllWorkspaceByUser(userId);
+        const { ownerId } = req.params;
+        const workspaces = await workspaceService.getAllWorkspaceByUser(ownerId);
         res.status(201).json(workspaces);
     } catch (error) {
         console.error('Error getting workspace:', error);

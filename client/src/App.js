@@ -3,15 +3,15 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from './pages/HomePage';
 import PublicBoards from './pages/PublicBoards';
 import UserBoards from './pages/UserBoards';
-import Project from './pages/Project';
 import Login from './pages/Login';
-import Register from './pages/Register'
+import Register from './pages/Register';
 import Header from './components/Header';
 import { getAuth } from 'firebase/auth';
 import BoardPage from './pages/BoardPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import RedirectRoute from './components/RedirectRoute'; // Import RedirectRoute
 
 function App () {
-  // eslint-disable-next-line
   const [user, setUser] = useState(null);
   const auth = getAuth();
 
@@ -30,13 +30,38 @@ function App () {
         <Route path="/">
           <Route index element={ <HomePage /> } />
           <Route path="public" element={ <PublicBoards /> } />
-          <Route path="private" element={ <UserBoards /> } />
-          <Route path="workspace" element={ <Project /> } />
-          <Route path="board/:boardId" element={<BoardPage />} />
-          <Route path="login" element={ <Login /> } />
-          <Route path="register" element={ <Register /> } />
-
-          {/* <Route path="*" element={<NoPage />} /> */ }
+          <Route
+            path="private"
+            element={
+              <ProtectedRoute user={user}>
+                <UserBoards />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="board/:boardId"
+            element={
+              <ProtectedRoute user={user}>
+                <BoardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="login"
+            element={
+              <RedirectRoute user={user}>
+                <Login />
+              </RedirectRoute>
+            }
+          />
+          <Route
+            path="register"
+            element={
+              <RedirectRoute user={user}>
+                <Register />
+              </RedirectRoute>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -3,10 +3,10 @@ import BoardService from "../services/BoardService.js";
 
 const boardService = new BoardService();
 
-async function createBoard(req, res) {
+async function createBoard (req, res) {
     try {
-        const { userId, workspace, title, visibility } = req.body;
-        const board = new BoardModel({ userId, workspace, title, visibility });
+        const { ownerId, title, workspaceId, visibility } = req.body;
+        const board = new BoardModel({ ownerId, title, workspaceId, visibility });
         const createdBoard = await boardService.createBoard(board);
         res.status(201).json(createdBoard); // Created response
     } catch (error) {
@@ -15,7 +15,18 @@ async function createBoard(req, res) {
     }
 }
 
-async function getAllBoardByWorkspace(req, res) {
+async function getBoard (req, res) {
+    try {
+        const { boardId } = req.params;
+        const boards = await boardService.getBoard(boardId);
+        res.status(200).json(boards); // OK response for fetching data
+    } catch (error) {
+        console.error('Error getting board:', error);
+        res.status(500).send('Internal server error');
+    }
+}
+
+async function getAllBoardByWorkspace (req, res) {
     try {
         const { workspaceId } = req.params;
         const boards = await boardService.getAllBoardByWorkspace(workspaceId);
@@ -26,7 +37,7 @@ async function getAllBoardByWorkspace(req, res) {
     }
 }
 
-async function getAllBoardPublic(req, res) {
+async function getAllBoardPublic (req, res) {
     try {
         const boards = await boardService.getAllPublicBoard();
         res.status(200).json(boards); // OK response for fetching data
@@ -36,7 +47,7 @@ async function getAllBoardPublic(req, res) {
     }
 }
 
-async function deleteBoard(req, res) {
+async function deleteBoard (req, res) {
     try {
         const { boardId } = req.params;
         const deletedBoard = await boardService.deleteBoard(boardId);
@@ -51,6 +62,7 @@ async function deleteBoard(req, res) {
 // Export all functions as default
 export default {
     createBoard,
+    getBoard,
     getAllBoardByWorkspace,
     getAllBoardPublic,
     deleteBoard

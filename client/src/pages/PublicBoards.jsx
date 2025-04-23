@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { apiBoardGetAllBoardPublic } from '../services/api';
 import { Button, Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import BoardButton from '../components/BoardButton';
 
 // import axios from 'axios';
 
@@ -14,11 +15,7 @@ const PublicBoards = () => {
         const res = await apiBoardGetAllBoardPublic();
 
         setBoardsData(res.data);
-        console.log("boards: " + JSON.stringify(res.data, null, 2));
-    }
-
-    function handleBoardClick () {
-        navigate('/board');
+        // console.log("boards: " + JSON.stringify(res.data, null, 2));
     }
 
     useEffect(() => {
@@ -28,31 +25,21 @@ const PublicBoards = () => {
     return (
         <Grid
             container
+            // direction='row'
             spacing={ 3 }
             sx={ {
                 p: 2,
-                display: "inline-flex",
+                display: "flex",
+                // flexDirection: "row",
+                // height: 100,
                 overflow: "hidden",
                 overflowY: "scroll",
-                height: 1
             } }>
             {
                 boardsData.map((board, index) => {
                     return (
-                        <Grid size='grow'>
-                            <Button
-                                size='large'
-                                onClick={ handleBoardClick }
-                                variant="contained"
-                                sx={ {
-                                    flexGrow: 0,
-                                    flexShrink: 0,
-                                    width: '200px',
-                                    height: '100px'
-                                } } >
-                                { board.title }
-                            </Button>
-                        </Grid>);
+                        <BoardButton board={ board }></BoardButton>
+                    );
                 })
             }
         </Grid>

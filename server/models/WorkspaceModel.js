@@ -14,7 +14,7 @@ class WorkspaceModel {
     title = '',
     description = '',
     ownerId = '',
-    members: []
+    members = []
   } = {}) {
     this.title = title;
     this.description = description;

@@ -12,7 +12,7 @@ import {
 
 export const BoardForm = ({ onBoardFormSummited }) => {
   const [title, setTitle] = useState('');
-  const [visibility, setVisibility] = useState(true);
+  const [visibility, setVisibility] = useState('public');
   const [interactable, setInteractable] = useState(true);
 
   const handleSubmit = async (e) => {
@@ -23,21 +23,10 @@ export const BoardForm = ({ onBoardFormSummited }) => {
       return;
     }
 
-    console.log("visible: " + visibility);
-
     onBoardFormSummited({ title, visibility });
     setTitle('');
-    setVisibility(true);
+    setVisibility('public');
     setInteractable(false);
-    // try {
-    //   const response = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`, newTask);
-    //   alert('Task created successfully!');
-    //   onBoardCreated({ ...newTask, id: response.data.id });
-
-    // } catch (error) {
-    //   console.error('Error board form:', error);
-    //   alert('Error board form');
-    // }
   };
 
   return (
@@ -80,7 +69,7 @@ export const BoardForm = ({ onBoardFormSummited }) => {
                   defaultChecked
                   value={ visibility }
                   disabled={ !interactable }
-                  onChange={ (e) => setVisibility(e.target.checked) } /> }
+                  onChange={ (e) => setVisibility(e.target.checked ? 'public' : 'private') } /> }
               label="Visible" />
 
             <Button
