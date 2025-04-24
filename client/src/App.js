@@ -9,17 +9,33 @@ import Header from './components/Header';
 import { getAuth } from 'firebase/auth';
 import BoardPage from './pages/BoardPage';
 import ProtectedRoute from './components/ProtectedRoute';
-import RedirectRoute from './components/RedirectRoute'; // Import RedirectRoute
+import RedirectRoute from './components/RedirectRoute';
+import AdminPage from './pages/AdminPage';
 
-function App () {
+function App() {
   const [user, setUser] = useState(null);
   const auth = getAuth();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          // Fetch user data from the backend to get the role
+          const response = await fetch(`http://localhost:5277/api/users/uid/${firebaseUser.uid}`);
+          if (!response.ok) {
+            throw new Error("Failed to fetch user data");
+          }
+          const userData = await response.json();
+          setUser({ ...firebaseUser, role: userData.role });
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setUser(null); // Reset user state in case of an error
+        }
+      } else {
+        setUser(null); // Clear user state when no user is logged in
+      }
     });
-
+  
     return () => unsubscribe();
   }, [auth]);
 
@@ -28,20 +44,28 @@ function App () {
       <Header />
       <Routes>
         <Route path="/">
-          <Route index element={ <HomePage /> } />
-          <Route path="public" element={ <PublicBoards /> } />
+          <Route index element={<HomePage />} />
+          <Route path="public" element={<PublicBoards />} />
           <Route
             path="private"
             element={
-              <ProtectedRoute user={user}>
+              <ProtectedRoute user={user} requiredRole="User">
                 <UserBoards />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="admin"
+            element={
+              <ProtectedRoute user={user} requiredRole="Admin">
+                <AdminPage />
               </ProtectedRoute>
             }
           />
           <Route
             path="board/:boardId"
             element={
-              <ProtectedRoute user={user}>
+              <ProtectedRoute user={user} requiredRole="User">
                 <BoardPage />
               </ProtectedRoute>
             }
@@ -66,6 +90,6 @@ function App () {
       </Routes>
     </BrowserRouter>
   );
-};
+}
 
 export default App;

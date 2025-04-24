@@ -28,8 +28,8 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import io from 'socket.io-client';
 
 const BoardPage = () => {
-  const { boardId } = useParams();
-  const auth = getAuth();
+    const { boardId } = useParams();
+    const auth = getAuth();
 
   const [board, setBoard] = useState(null);
   const [lists, setLists] = useState([]);
@@ -149,7 +149,7 @@ const BoardPage = () => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser || !boardId) return;
 
-      console.log('Authenticated user:', currentUser.uid);
+            console.log('Authenticated user:', currentUser.uid);
 
       try {
         const boardRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/board/${boardId}`);
@@ -157,24 +157,24 @@ const BoardPage = () => {
         const listRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/board/${boardId}`);
         const lists = listRes.data;
 
-        const listWithCards = await Promise.all(
-          lists.map(async (list) => {
-            try {
-              const cardRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/card/list/${list._id}`);
-              return { ...list, cards: cardRes.data || [] };
-            } catch (err) {
-              console.error(`Error fetching cards for list ${list._id}`, err);
-              return { ...list, cards: [] };
-            }
-          })
-        );
+                const listWithCards = await Promise.all(
+                    lists.map(async (list) => {
+                        try {
+                            const cardRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/card/list/${list._id}`);
+                            return { ...list, cards: cardRes.data || [] };
+                        } catch (err) {
+                            console.error(`Error fetching cards for list ${list._id}`, err);
+                            return { ...list, cards: [] };
+                        }
+                    })
+                );
 
-        setLists(listWithCards);
-        console.log('Fetched lists + cards:', listWithCards);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-      }
-    });
+                setLists(listWithCards);
+                console.log('Fetched lists + cards:', listWithCards);
+            } catch (err) {
+                console.error('Error fetching data:', err);
+            }
+        });
 
     return () => {
         unsubscribe();
@@ -242,51 +242,54 @@ const BoardPage = () => {
   };
 
 
-  const handleCreateList = async () => {
-    try {
-      const res = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/list`, {
-        title: newList.title,
-        boardId,
-        position: lists.length > 0 ? lists[lists.length - 1].position + 1 : 0
-      });
-    } catch (err) {
-      console.error('Error creating list:', err);
-    }
-  };
-  
-  const handleEditList = (listId) => {
-    const list = lists.find((l) => l._id === listId);
-    if (list) {
-      setEditingList(list);
-      setNewList({ title: list.title });
-      setOpenListDialog(true);
-    }
-  };
-  const handleUpdateList = async () => {
-    try {
-      const res = await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/${editingList._id}`, {
-        title: newList.title,
-      });
-  
-      // Cập nhật UI
-      setLists((prevLists) =>
-        prevLists.map((list) =>
-          list._id === editingList._id ? { ...list, title: newList.title } : list
-        )
-      );
-  
-      setEditingList(null);
-      setNewList({ title: '' });
-      setOpenListDialog(false);
-    } catch (err) {
-      console.error('Error updating list:', err);
-    }
-  };
-  
-  const formatDueDate = (dueDate) => {
-    const date = new Date(dueDate);
-    return date.toLocaleDateString('en-US');
-  };
+    const handleCreateList = async () => {
+        try {
+            const res = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/list`, {
+                title: newList.title,
+                boardId,
+                position: lists.length > 0 ? lists[lists.length - 1].position + 1 : 0
+            });
+            return res.data;
+        } catch (err) {
+            console.error('Error creating list:', err);
+        }
+    };
+
+    const handleEditList = (listId) => {
+        const list = lists.find((l) => l._id === listId);
+        if (list) {
+            setEditingList(list);
+            setNewList({ title: list.title });
+            setOpenListDialog(true);
+        }
+    };
+    const handleUpdateList = async () => {
+        try {
+            const res = await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/${editingList._id}`, {
+                title: newList.title,
+            });
+
+            // Cập nhật UI
+            setLists((prevLists) =>
+                prevLists.map((list) =>
+                    list._id === editingList._id ? { ...list, title: newList.title } : list
+                )
+            );
+
+            setEditingList(null);
+            setNewList({ title: '' });
+            setOpenListDialog(false);
+            return res.data;
+
+        } catch (err) {
+            console.error('Error updating list:', err);
+        }
+    };
+
+    const formatDueDate = (dueDate) => {
+        const date = new Date(dueDate);
+        return date.toLocaleDateString('en-US');
+    };
 
   const handleDeleteList = async (listId) => {
     try {
@@ -675,41 +678,41 @@ const BoardPage = () => {
           </Droppable>
         )}
 
-      </DragDropContext>
+            </DragDropContext>
 
-      {/* Dialog tạo List */}
-      <Dialog open={openListDialog} onClose={() => setOpenListDialog(false)}>
-      <DialogTitle>{editingList ? 'Edit List' : 'Create New List'}</DialogTitle>
-        <DialogContent>
-        <TextField
-        label="List Title"
-        variant="outlined"
-        fullWidth
-        value={newList.title}
-        onChange={(e) => setNewList({ ...newList, title: e.target.value })}
-        />
+            {/* Dialog tạo List */ }
+            <Dialog open={ openListDialog } onClose={ () => setOpenListDialog(false) }>
+                <DialogTitle>{ editingList ? 'Edit List' : 'Create New List' }</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        label="List Title"
+                        variant="outlined"
+                        fullWidth
+                        value={ newList.title }
+                        onChange={ (e) => setNewList({ ...newList, title: e.target.value }) }
+                    />
 
-            <Box sx={{ marginTop: 2, display: 'flex', gap: 1 }}>
-            <Button variant="contained" onClick={editingList ? handleUpdateList : handleCreateList}>
-                {editingList ? 'Update List' : 'Create List'}
-            </Button>
-            {editingList && (
-                <Button
-                variant="outlined"
-                color="secondary"
-                onClick={() => {
-                    setEditingList(null);
-                    setNewList({ title: '' });
-                    setOpenListDialog(false);
-                }}
-                >
-                Cancel
-                </Button>
-            )}
-            </Box>
+                    <Box sx={ { marginTop: 2, display: 'flex', gap: 1 } }>
+                        <Button variant="contained" onClick={ editingList ? handleUpdateList : handleCreateList }>
+                            { editingList ? 'Update List' : 'Create List' }
+                        </Button>
+                        { editingList && (
+                            <Button
+                                variant="outlined"
+                                color="secondary"
+                                onClick={ () => {
+                                    setEditingList(null);
+                                    setNewList({ title: '' });
+                                    setOpenListDialog(false);
+                                } }
+                            >
+                                Cancel
+                            </Button>
+                        ) }
+                    </Box>
 
-        </DialogContent>
-      </Dialog>
+                </DialogContent>
+            </Dialog>
 
       {/* Dialog tạo Card */}
       <Dialog open={openCardDialog} onClose={() => setOpenCardDialog(false)}>

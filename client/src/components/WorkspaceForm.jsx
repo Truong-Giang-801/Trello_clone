@@ -5,14 +5,12 @@ import {
   Button,
   Typography,
   Box,
-  Stack,
-  Switch,
-  FormControlLabel,
+  Stack
 } from '@mui/material';
 
-export const BoardForm = ({ onBoardFormSummited }) => {
+export const WorkspaceForm = ({ onFormSummited }) => {
   const [title, setTitle] = useState('');
-  const [visibility, setVisibility] = useState('public');
+  const [description, setDescription] = useState('');
   const [interactable, setInteractable] = useState(true);
 
   const handleSubmit = async (e) => {
@@ -23,9 +21,9 @@ export const BoardForm = ({ onBoardFormSummited }) => {
       return;
     }
 
-    onBoardFormSummited({ title, visibility });
+    onFormSummited({ title, description });
     setTitle('');
-    setVisibility('public');
+    setDescription('');
     setInteractable(false);
   };
 
@@ -45,7 +43,7 @@ export const BoardForm = ({ onBoardFormSummited }) => {
         } }
       >
         <Typography variant="h5" gutterBottom align="center">
-          Create Board
+          Create Workspace
         </Typography>
 
         <form onSubmit={ handleSubmit }>
@@ -60,17 +58,16 @@ export const BoardForm = ({ onBoardFormSummited }) => {
               disabled={ !interactable }
             />
 
-            <FormControlLabel
+            <TextField
+              label="Description"
+              value={ description }
+              onChange={ (e) => setDescription(e.target.value) }
+              required
               fullWidth
               variant="outlined"
-              // required
-              control={
-                <Switch
-                  defaultChecked
-                  value={ visibility }
-                  disabled={ !interactable }
-                  onChange={ (e) => setVisibility(e.target.checked ? 'public' : 'private') } /> }
-              label="Public" />
+              multiline
+              rows={ 4 }
+            />
 
             <Button
               type="submit"
@@ -79,7 +76,7 @@ export const BoardForm = ({ onBoardFormSummited }) => {
               size="large"
               disabled={ !interactable }
             >
-              Create Board
+              Create Workspace
             </Button>
           </Stack>
         </form>
@@ -88,4 +85,4 @@ export const BoardForm = ({ onBoardFormSummited }) => {
   );
 };
 
-export default BoardForm;
+export default WorkspaceForm;

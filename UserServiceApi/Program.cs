@@ -18,7 +18,15 @@ builder.Services.AddSingleton<UserService>();
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
 builder.Services.AddControllers();
 var app = builder.Build();
 
@@ -29,4 +37,6 @@ app.UseSwaggerUI(c =>
 });
 
 app.MapControllers();
+app.UseCors("AllowAllOrigins");
+
 app.Run();

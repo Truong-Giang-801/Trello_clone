@@ -112,11 +112,11 @@ export async function editCard(req, res) {
   
 }
 
-// Export all functions as default
 export default {
   getCardById,
   createCard,
   getAllCardByList,
+  assignUser,
   deleteCard,
   assignUser,
   removeAssignedUser,

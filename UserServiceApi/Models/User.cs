@@ -12,7 +12,6 @@ public class User
     public string Uid { get; set; } = null!;
     public string Email { get; set; } = null!;
     public string? DisplayName { get; set; }
-    public string? role { get; set; }
+    public string? role { get; set; } = "User"; // Default role, adjust as needed
     public string? PhoneNumber { get; set; }
-    
 }

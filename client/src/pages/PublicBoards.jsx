@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { apiBoardGetAllBoardPublic } from '../services/api';
-import { Button, Grid } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Grid2 } from '@mui/material';
 import BoardButton from '../components/BoardButton';
 
 // import axios from 'axios';
 
 const PublicBoards = () => {
-    const navigate = useNavigate();
     const [boardsData, setBoardsData] = useState([]);
 
     async function fetchBoards () {
-        console.log(`Fetching public boards`);
+        // console.log(`Fetching public boards`);
         const res = await apiBoardGetAllBoardPublic();
 
         setBoardsData(res.data);
-        // console.log("boards: " + JSON.stringify(res.data, null, 2));
     }
 
     useEffect(() => {
@@ -23,7 +20,7 @@ const PublicBoards = () => {
     }, []);
 
     return (
-        <Grid
+        <Grid2
             container
             // direction='row'
             spacing={ 3 }
@@ -38,11 +35,11 @@ const PublicBoards = () => {
             {
                 boardsData.map((board, index) => {
                     return (
-                        <BoardButton board={ board }></BoardButton>
+                        <BoardButton board={ board } key={ index }></BoardButton>
                     );
                 })
             }
-        </Grid>
+        </Grid2>
     );
 };
 
