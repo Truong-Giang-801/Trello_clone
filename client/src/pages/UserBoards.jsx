@@ -4,17 +4,18 @@ import { apiUserAllWorkspaceByUser, apiUserCreateWorkspace, apiWorkspaceCreateBo
 import { BoardForm } from '../components/BoardForm';
 import Workspace from '../components/Workspace';
 import { getAuth } from 'firebase/auth';
+import WorkspaceForm from '../components/WorkspaceForm';
 
 const UserBoards = () => {
     const auth = getAuth();
     const [showBoardForm, setShowBoardForm] = useState(false);
+    const [showWorkspaceForm, setShowWorkspaceForm] = useState(false);
     const [workspacesData, setWorkspacesData] = useState([]);
     const [currentWorkspace, setCurrentWorkspace] = useState(null);
 
     async function fetchWorkspaces (userId) {
         const res = await apiUserAllWorkspaceByUser(userId);
         setWorkspacesData(res.data);
-        console.log(JSON.stringify(res.data));
     }
 
     async function createBoard (board, onBoardCreated) {
@@ -27,7 +28,6 @@ const UserBoards = () => {
     async function createWorkspace (workspace, onWorkspaceCreated) {
         const res = await apiUserCreateWorkspace(workspace);
         onWorkspaceCreated(res.data);
-        console.log(JSON.stringify(res.data));
     }
 
     useEffect(() => {
@@ -59,6 +59,28 @@ const UserBoards = () => {
                 </DialogContent>
             </Dialog>
 
+            <Dialog
+                open={ showWorkspaceForm }
+                onClose={ () => showWorkspaceForm(false) }>
+                <DialogTitle>Create Workspace</DialogTitle>
+                <DialogContent>
+                    <WorkspaceForm
+                        onFormSummited={ (newWorkspace) => {
+                            const currentUser = auth.currentUser;
+                            if (currentUser) {
+
+                                newWorkspace.ownerId = currentUser.uid;
+                                createWorkspace({ ownerId: currentUser.uid }, () => fetchWorkspaces(currentUser.uid));
+                                createBoard(newWorkspace, () => {
+                                    setShowBoardForm(false);
+                                    fetchWorkspaces(currentUser.uid);
+                                });
+                            }
+                        } }
+                    />
+                </DialogContent>
+            </Dialog>
+
             <Stack>
                 { workspacesData.map((workspace, index) => (
                     <Workspace
@@ -79,7 +101,8 @@ const UserBoards = () => {
                         onClick={ () => {
                             const currentUser = auth.currentUser;
                             if (currentUser) {
-                                createWorkspace({ ownerId: currentUser.uid }, () => fetchWorkspaces(currentUser.uid));
+                                showWorkspaceForm(true);
+                                // createWorkspace({ ownerId: currentUser.uid }, () => fetchWorkspaces(currentUser.uid));
                             }
                         } }
                         sx={ {
