@@ -21,7 +21,7 @@ function App() {
       if (firebaseUser) {
         try {
           // Fetch user data from the backend to get the role
-          const response = await fetch(`http://localhost:5277/api/users/uid/${firebaseUser.uid}`);
+          const response = await fetch(`http://localhost:5277/api/Users/uid/${firebaseUser.uid}`);
           if (!response.ok) {
             throw new Error("Failed to fetch user data");
           }

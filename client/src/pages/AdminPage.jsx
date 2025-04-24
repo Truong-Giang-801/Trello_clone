@@ -9,7 +9,23 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Select, MenuItem, Pagination } from '@mui/material';
+import {
+  Container,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  Select,
+  MenuItem,
+  Pagination,
+  Switch,
+  FormControlLabel,
+} from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -18,6 +34,7 @@ const AdminPage = () => {
   const [publicBoards, setPublicBoards] = useState([]);
   const [workspaceBoards, setWorkspaceBoards] = useState([]);
   const [users, setUsers] = useState([]);
+  const [darkMode, setDarkMode] = useState(false); // Theme state
 
   // Pagination states
   const [publicBoardsPage, setPublicBoardsPage] = useState(1);
@@ -73,8 +90,8 @@ const AdminPage = () => {
       alert('User banned successfully');
       setUsers(users.filter((user) => user.id !== userId)); // Remove user from the list
     } catch (error) {
-      console.error('Error banning user:', error);
-      alert('Failed to ban user');
+      console.error('Error delete:', error);
+      alert('Failed to delete');
     }
   };
 
@@ -112,118 +129,139 @@ const AdminPage = () => {
     return data.slice(startIndex, startIndex + itemsPerPage);
   };
 
+  // Theme configuration
+  const theme = createTheme({
+    palette: {
+      mode: darkMode ? 'dark' : 'light',
+    },
+  });
+
   return (
-    <Container>
-      <h1>Admin Dashboard</h1>
+    <ThemeProvider theme={theme}>
+      <Container>
+        <h1>Admin Dashboard</h1>
 
-      {/* Chart Section */}
-      <section>
-        <h2>Analytics</h2>
-        <Bar data={chartData} />
-      </section>
-
-      {/* Public Boards Table */}
-      <section>
-        <h2>Public Boards</h2>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Title</TableCell>
-                <TableCell>Visibility</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginate(publicBoards, publicBoardsPage).map((board) => (
-                <TableRow key={board.id}>
-                  <TableCell>{board.title}</TableCell>
-                  <TableCell>{board.visibility}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Pagination
-          count={Math.ceil(publicBoards.length / itemsPerPage)}
-          page={publicBoardsPage}
-          onChange={(e, page) => setPublicBoardsPage(page)}
+        {/* Theme Toggle */}
+        <FormControlLabel
+          control={
+            <Switch
+              checked={darkMode}
+              onChange={() => setDarkMode(!darkMode)}
+              color="primary"
+            />
+          }
+          label="Dark Mode"
         />
-      </section>
 
-      {/* Workspace Boards Table */}
-      <section>
-        <h2>Workspace Boards</h2>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Title</TableCell>
-                <TableCell>Workspace ID</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginate(workspaceBoards, workspaceBoardsPage).map((board) => (
-                <TableRow key={board.id}>
-                  <TableCell>{board.title}</TableCell>
-                  <TableCell>{board.workspaceId}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Pagination
-          count={Math.ceil(workspaceBoards.length / itemsPerPage)}
-          page={workspaceBoardsPage}
-          onChange={(e, page) => setWorkspaceBoardsPage(page)}
-        />
-      </section>
+        {/* Chart Section */}
+        <section>
+          <h2>Analytics</h2>
+          <Bar data={chartData} />
+        </section>
 
-      {/* Users Table */}
-      <section>
-        <h2>Users</h2>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Email</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginate(users, usersPage).map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Select
-                      value={user.role || 'User'}
-                      onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                    >
-                      <MenuItem value="User">User</MenuItem>
-                      <MenuItem value="Admin">Admin</MenuItem>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      onClick={() => handleBanUser(user.id)}
-                    >
-                      Ban User
-                    </Button>
-                  </TableCell>
+        {/* Public Boards Table */}
+        <section>
+          <h2>Public Boards</h2>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Title</TableCell>
+                  <TableCell>Visibility</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Pagination
-          count={Math.ceil(users.length / itemsPerPage)}
-          page={usersPage}
-          onChange={(e, page) => setUsersPage(page)}
-        />
-      </section>
-    </Container>
+              </TableHead>
+              <TableBody>
+                {paginate(publicBoards, publicBoardsPage).map((board) => (
+                  <TableRow key={board.id}>
+                    <TableCell>{board.title}</TableCell>
+                    <TableCell>{board.visibility}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Pagination
+            count={Math.ceil(publicBoards.length / itemsPerPage)}
+            page={publicBoardsPage}
+            onChange={(e, page) => setPublicBoardsPage(page)}
+          />
+        </section>
+
+        {/* Workspace Boards Table */}
+        <section>
+          <h2>Workspace Boards</h2>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Title</TableCell>
+                  <TableCell>Workspace ID</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paginate(workspaceBoards, workspaceBoardsPage).map((board) => (
+                  <TableRow key={board.id}>
+                    <TableCell>{board.title}</TableCell>
+                    <TableCell>{board.workspaceId}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Pagination
+            count={Math.ceil(workspaceBoards.length / itemsPerPage)}
+            page={workspaceBoardsPage}
+            onChange={(e, page) => setWorkspaceBoardsPage(page)}
+          />
+        </section>
+
+        {/* Users Table */}
+        <section>
+          <h2>Users</h2>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Role</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paginate(users, usersPage).map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={user.role || 'User'}
+                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                      >
+                        <MenuItem value="User">User</MenuItem>
+                        <MenuItem value="Admin">Admin</MenuItem>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={() => handleBanUser(user.id)}
+                      >
+                        Delete User
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Pagination
+            count={Math.ceil(users.length / itemsPerPage)}
+            page={usersPage}
+            onChange={(e, page) => setUsersPage(page)}
+          />
+        </section>
+      </Container>
+    </ThemeProvider>
   );
 };
 
