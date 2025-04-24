@@ -28,8 +28,8 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import io from 'socket.io-client';
 
 const BoardPage = () => {
-    const { boardId } = useParams();
-    const auth = getAuth();
+  const { boardId } = useParams();
+  const auth = getAuth();
 
   const [board, setBoard] = useState(null);
   const [lists, setLists] = useState([]);
@@ -39,6 +39,9 @@ const BoardPage = () => {
   const [newList, setNewList] = useState({ title: '' });
   const [editingList, setEditingList] = useState(null);
   const [editingCardId, setEditingCardId] = useState(null);
+  // Add these new state variables for edit functionality
+  const [editingListId, setEditingListId] = useState(null);
+  const [editingBoardTitle, setEditingBoardTitle] = useState(false);
 
   const [openDueDateDialog, setOpenDueDateDialog] = useState(false);
   const [openAssignDialog, setOpenAssignDialog] = useState(false);
@@ -149,7 +152,7 @@ const BoardPage = () => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser || !boardId) return;
 
-            console.log('Authenticated user:', currentUser.uid);
+      console.log('Authenticated user:', currentUser.uid);
 
       try {
         const boardRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/board/${boardId}`);
@@ -158,28 +161,28 @@ const BoardPage = () => {
         const listRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/board/${boardId}`);
         const lists = listRes.data;
 
-                const listWithCards = await Promise.all(
-                    lists.map(async (list) => {
-                        try {
-                            const cardRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/card/list/${list._id}`);
-                            return { ...list, cards: cardRes.data || [] };
-                        } catch (err) {
-                            console.error(`Error fetching cards for list ${list._id}`, err);
-                            return { ...list, cards: [] };
-                        }
-                    })
-                );
+        const listWithCards = await Promise.all(
+            lists.map(async (list) => {
+                try {
+                    const cardRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/card/list/${list._id}`);
+                    return { ...list, cards: cardRes.data || [] };
+                } catch (err) {
+                    console.error(`Error fetching cards for list ${list._id}`, err);
+                    return { ...list, cards: [] };
+                }
+            })
+        );
 
-                setLists(listWithCards);
-                console.log('Fetched lists + cards:', listWithCards);
-            } catch (err) {
-                console.error('Error fetching data:', err);
-            }
-        });
+        setLists(listWithCards);
+        console.log('Fetched lists + cards:', listWithCards);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      }
+    });
 
     return () => {
-        unsubscribe();
-        socket.disconnect();
+      unsubscribe();
+      socket.disconnect();
     }
   }, [boardId]);
 
@@ -207,20 +210,21 @@ const BoardPage = () => {
     }
   }, [board]);
 
-    const handleCreateCard = async () => {
-      try {
-        await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/card`, {
-          title: newCard.title,
-          dueDate: newCard.dueDate,
-          listId: newCard.listId,
-        });
-        setOpenCardDialog(false);
-        setNewCard({ title: '', dueDate: '', listId: '' });
-      } catch (err) {
-        console.error('Error creating card:', err);
-      }
-    };
-    // Add this function to handle saving the card title edit
+  const handleCreateCard = async () => {
+    try {
+      await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/card`, {
+        title: newCard.title,
+        dueDate: newCard.dueDate,
+        listId: newCard.listId,
+      });
+      setOpenCardDialog(false);
+      setNewCard({ title: '', dueDate: '', listId: '' });
+    } catch (err) {
+      console.error('Error creating card:', err);
+    }
+  };
+
+  // Add this function to handle saving the card title edit
   const handleCardTitleSave = async (cardId, newTitle) => {
     try {
       if (!newTitle.trim()) {
@@ -242,61 +246,111 @@ const BoardPage = () => {
     }
   };
 
+  // Add this function to handle saving the list title edit
+  const handleListTitleSave = async (listId, newTitle) => {
+    try {
+      if (!newTitle.trim()) {
+        // Don't save empty titles
+        setEditingListId(null);
+        return;
+      }
+      
+      await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/${listId}`, {
+        title: newTitle
+      });
+      
+      // Update UI immediately (socket will handle final update)
+      setLists(prevLists => 
+        prevLists.map(list => 
+          list._id === listId ? { ...list, title: newTitle } : list
+        )
+      );
+      
+      // Exit edit mode
+      setEditingListId(null);
+    } catch (err) {
+      console.error('Error updating list title:', err);
+    }
+  };
 
-    const handleCreateList = async () => {
-        try {
-            const res = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/list`, {
-                title: newList.title,
-                boardId,
-                position: lists.length > 0 ? lists[lists.length - 1].position + 1 : 0
-            });
-            return res.data;
-        } catch (err) {
-            console.error('Error creating list:', err);
-        }
-    };
+  // Add this function to handle saving the board title edit
+  const handleBoardTitleSave = async (newTitle) => {
+    try {
+      if (!newTitle.trim() || !board) {
+        // Don't save empty titles
+        setEditingBoardTitle(false);
+        return;
+      }
+      
+      await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/board/${board._id}`, {
+        title: newTitle
+      });
+      
+      // Update UI immediately
+      setBoard(prev => ({ ...prev, title: newTitle }));
+      
+      // Exit edit mode
+      setEditingBoardTitle(false);
+    } catch (err) {
+      console.error('Error updating board title:', err);
+    }
+  };
 
-    const handleEditList = (listId) => {
-        const list = lists.find((l) => l._id === listId);
-        if (list) {
-            setEditingList(list);
-            setNewList({ title: list.title });
-            setOpenListDialog(true);
-        }
-    };
-    const handleUpdateList = async () => {
-        try {
-            const res = await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/${editingList._id}`, {
-                title: newList.title,
-            });
+  const handleCreateList = async () => {
+    try {
+      const res = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/list`, {
+        title: newList.title,
+        boardId,
+        position: lists.length > 0 ? lists[lists.length - 1].position + 1 : 0
+      });
+      return res.data;
+    } catch (err) {
+      console.error('Error creating list:', err);
+    }
+  };
 
-            // Cập nhật UI
-            setLists((prevLists) =>
-                prevLists.map((list) =>
-                    list._id === editingList._id ? { ...list, title: newList.title } : list
-                )
-            );
+  const handleEditList = (listId) => {
+    const list = lists.find((l) => l._id === listId);
+    if (list) {
+      setEditingList(list);
+      setNewList({ title: list.title });
+      setOpenListDialog(true);
+    }
+  };
 
-            setEditingList(null);
-            setNewList({ title: '' });
-            setOpenListDialog(false);
-            return res.data;
+  const handleUpdateList = async () => {
+    try {
+      const res = await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/${editingList._id}`, {
+        title: newList.title,
+      });
 
-        } catch (err) {
-            console.error('Error updating list:', err);
-        }
-    };
+      // Cập nhật UI
+      setLists((prevLists) =>
+        prevLists.map((list) =>
+          list._id === editingList._id ? { ...list, title: newList.title } : list
+        )
+      );
 
-    const formatDueDate = (dueDate) => {
-        const date = new Date(dueDate);
-        return date.toLocaleDateString('en-US');
-    };
+      setEditingList(null);
+      setNewList({ title: '' });
+      setOpenListDialog(false);
+      return res.data;
+
+    } catch (err) {
+      console.error('Error updating list:', err);
+    }
+  };
+
+  const formatDueDate = (dueDate) => {
+    const date = new Date(dueDate);
+    return date.toLocaleDateString('en-US');
+  };
 
   const handleDeleteList = async (listId) => {
     try {
-        const res = await axios.delete(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/${listId}`);
+      const res = await axios.delete(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/${listId}`);
     } catch (err) {
-        console.error('Error deleting list:', err);
+      console.error('Error deleting list:', err);
     }
   };
 
@@ -490,12 +544,63 @@ const BoardPage = () => {
       }
     }
   };
+
+  const getBorderColor = (dueDate) => {
+    if (!dueDate) return 'green';
   
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // 00:00 today
+    const due = new Date(dueDate);
+    const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate());
   
+    const diffInMs = dueDay - today;
+    const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+  
+    if (diffInDays < 0) return 'red';
+    if (diffInDays === 0) return 'orange';
+    if (diffInDays <= 2) return 'yellow';
+    return 'green';
+  };
 
   return (
     <Box sx={{ padding: 3, minHeight: '618px'}}>
-      {board!= null && (<Typography variant="h3" sx={{ borderRadius: '10px', bgcolor: 'primary.main', color: 'white', textAlign: 'center', py: 1, marginBottom: '0.5em'}}>{board.title}</Typography>)}
+      {board != null && (
+        // Click-to-edit Board Title
+        <Box sx={{ borderRadius: '10px', bgcolor: 'primary.main', color: 'white', textAlign: 'center', py: 1, marginBottom: '0.5em' }}>
+          {editingBoardTitle ? (
+            <TextField
+              autoFocus
+              value={board.title}
+              variant="standard"
+              InputProps={{
+                sx: { 
+                  color: 'white', 
+                  fontSize: '1.5rem',
+                  textAlign: 'center',
+                  width: '100%'
+                }
+              }}
+              onChange={(e) => setBoard({ ...board, title: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleBoardTitleSave(board.title);
+                } else if (e.key === 'Escape') {
+                  setEditingBoardTitle(false);
+                }
+              }}
+              onBlur={() => handleBoardTitleSave(board.title)}
+            />
+          ) : (
+            <Typography 
+              variant="h3" 
+              onClick={() => setEditingBoardTitle(true)}
+              sx={{ cursor: 'pointer' }}
+            >
+              {board.title}
+            </Typography>
+          )}
+        </Box>
+      )}
       
       <DragDropContext onDragEnd={onDragEnd}>
         {/* Nút tạo List */}
@@ -506,120 +611,144 @@ const BoardPage = () => {
         </Box>
         {lists.length > 0 && (
           <Droppable droppableId="board" direction="horizontal" type="LIST">
-          {(provided) => (
+            {(provided) => (
               <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              style={{ display: 'flex', overflowX: 'auto', paddingBottom: 16 }}
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                style={{ display: 'flex', overflowX: 'auto', paddingBottom: 16 }}
               >
-              {lists.map((list, listIndex) => (
+                {lists.map((list, listIndex) => (
                   <Draggable key={list._id} draggableId={list._id} index={listIndex}>
-                  {(listProvided) => (
+                    {(listProvided) => (
                       <div
-                      ref={listProvided.innerRef}
-                      {...listProvided.draggableProps}
-                      style={{
+                        ref={listProvided.innerRef}
+                        {...listProvided.draggableProps}
+                        style={{
                           ...listProvided.draggableProps.style,
                           width: 300,
                           marginRight: 16,
                           flexShrink: 0,
-                      }}
+                        }}
                       >
-                      <Box {...listProvided.dragHandleProps}>
-                          {/* List header */}
-                          <Typography variant="h6" sx={{ borderRadius: '5px', bgcolor: '	#0093cb', color: '	white', textAlign: 'center', py: 1 }}>
-                          <IconButton 
-                              onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditList(list._id);
-                              }}
-                          >
-                              <EditIcon />
-                          </IconButton>
-                          {list.title}
-                          <IconButton color="error"
-                              onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteList(list._id);
-                              }}
-                          >
-                              <DeleteIcon />
-                          </IconButton>
-                          
-                          </Typography>
-                          
-                      </Box>
+                        <Box {...listProvided.dragHandleProps}>
+                          {/* List header with click-to-edit */}
+                          <Box sx={{ borderRadius: '5px', bgcolor: '#0093cb', color: 'white', textAlign: 'center', py: 1 }}>
+                            {editingListId === list._id ? (
+                              <TextField
+                                autoFocus
+                                value={list.title}
+                                variant="standard"
+                                InputProps={{
+                                  sx: { 
+                                    color: 'white', 
+                                    fontSize: '1.25rem',
+                                    textAlign: 'center',
+                                    width: '70%'  // Allow space for icons
+                                  }
+                                }}
+                                onChange={(e) => {
+                                  // Update the list title locally while editing
+                                  setLists(prevLists => 
+                                    prevLists.map(l => 
+                                      l._id === list._id ? { ...l, title: e.target.value } : l
+                                    )
+                                  );
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleListTitleSave(list._id, list.title);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingListId(null);
+                                  }
+                                }}
+                                onBlur={() => handleListTitleSave(list._id, list.title)}
+                              />
+                            ) : (
+                              <>
+                                <Typography 
+                                  variant="h6" 
+                                  component="span"
+                                  onClick={() => setEditingListId(list._id)}
+                                  sx={{ cursor: 'pointer', display: 'inline-block' }}
+                                >
+                                  {list.title}
+                                </Typography>
+                              </>
+                            )}
+                          </Box>
+                        </Box>
 
-                      {/* List content and cards */}
-                      <Droppable droppableId={list._id} type="CARD" direction="vertical">
+                        {/* List content and cards */}
+                        <Droppable droppableId={list._id} type="CARD" direction="vertical">
                           {(provided) => (
-                          <Box
+                            <Box
                               ref={provided.innerRef}
                               {...provided.droppableProps}
                               sx={{
-                              border: '1px solid',
-                              borderColor: 'grey.400',
-                              borderRadius: 2,
-                              p: 2,
-                              minHeight: 200,
-                              backgroundColor: 'grey.100',
+                                border: '1px solid',
+                                borderColor: 'grey.400',
+                                borderRadius: 2,
+                                p: 2,
+                                minHeight: 200,
+                                backgroundColor: 'grey.100',
                               }}
-                          >
-                              
-
+                            >
                               {list.cards.map((card, index) => (
-                              <Draggable draggableId={card._id} index={index} key={card._id}>
+                                <Draggable draggableId={card._id} index={index} key={card._id}>
                                   {(provided) => (
-                                  <Card
+                                    <Card
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
                                       {...provided.dragHandleProps}
-                                      sx={{ mb: 2 }}
-                                  >
+                                      sx={{ 
+                                        mb: 2, 
+                                        border: `2px solid ${getBorderColor(card.dueDate)}`,
+                                        borderRadius: 2
+                                      }}
+                                    >
                                       <CardContent>
-                                      {editingCardId === card._id ? (
-                                        <TextField
-                                          autoFocus
-                                          fullWidth
-                                          value={card.title}
-                                          variant="standard"
-                                          sx={{ mb: 1 }}
-                                          onChange={(e) => {
-                                            // Update the card title locally while editing
-                                            setLists(prevLists => 
-                                              prevLists.map(l => ({
-                                                ...l,
-                                                cards: l.cards.map(c => 
-                                                  c._id === card._id ? { ...c, title: e.target.value } : c
-                                                )
-                                              }))
-                                            );
-                                          }}
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                              handleCardTitleSave(card._id, card.title);
-                                            } else if (e.key === 'Escape') {
-                                              setEditingCardId(null);
-                                            }
-                                          }}
-                                          onBlur={() => handleCardTitleSave(card._id, card.title)}
-                                        />
-                                      ) : (
-                                        <Typography 
-                                          variant="subtitle1" 
-                                          onClick={() => setEditingCardId(card._id)}
-                                          sx={{ cursor: 'pointer' }}
-                                        >
-                                          {card.title}
-                                        </Typography>
-                                      )}
+                                        {editingCardId === card._id ? (
+                                          <TextField
+                                            autoFocus
+                                            fullWidth
+                                            value={card.title}
+                                            variant="standard"
+                                            sx={{ mb: 1 }}
+                                            onChange={(e) => {
+                                              // Update the card title locally while editing
+                                              setLists(prevLists => 
+                                                prevLists.map(l => ({
+                                                  ...l,
+                                                  cards: l.cards.map(c => 
+                                                    c._id === card._id ? { ...c, title: e.target.value } : c
+                                                  )
+                                                }))
+                                              );
+                                            }}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') {
+                                                handleCardTitleSave(card._id, card.title);
+                                              } else if (e.key === 'Escape') {
+                                                setEditingCardId(null);
+                                              }
+                                            }}
+                                            onBlur={() => handleCardTitleSave(card._id, card.title)}
+                                          />
+                                        ) : (
+                                          <Typography 
+                                            variant="subtitle1" 
+                                            onClick={() => setEditingCardId(card._id)}
+                                            sx={{ cursor: 'pointer' }}
+                                          >
+                                            {card.title}
+                                          </Typography>
+                                        )}
                                         <Typography variant="caption">
                                           Deadline: {formatDueDate(card.dueDate)}
                                         </Typography>
-                                        
                                       </CardContent>
-                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'right' }}>
-                                          <Box>
+                                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'right' }}>
+                                        <Box>
                                           <IconButton 
                                             onClick={(e) => {
                                               e.stopPropagation();
@@ -647,73 +776,81 @@ const BoardPage = () => {
                                           >
                                             <DeleteIcon />
                                           </IconButton>
-                                          </Box>
                                         </Box>
-                                  </Card>
-                                  
+                                      </Box>
+                                    </Card>
                                   )}
-                              </Draggable>
+                                </Draggable>
                               ))}
                               <Button
-                              fullWidth
-                              variant="contained"
-                              sx={{ mb: 2, bgcolor: '#0093cb' }}
-                              onClick={() => {
+                                fullWidth
+                                variant="contained"
+                                sx={{ mb: 2, bgcolor: '#0093cb' }}
+                                onClick={() => {
                                   setNewCard({ ...newCard, listId: list._id });
                                   setOpenCardDialog(true);
-                              }}
+                                }}
                               >
-                              Add Card
+                                Add Card
                               </Button>
                               {provided.placeholder}
-                          </Box>
+                              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                <IconButton
+                                  color="error"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteList(list._id);
+                                  }}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Box>
+                            </Box>
                           )}
-                      </Droppable>
+                        </Droppable>
                       </div>
-                  )}
+                    )}
                   </Draggable>
-              ))}
-              {provided.placeholder}
+                ))}
+                {provided.placeholder}
               </div>
-          )}
+            )}
           </Droppable>
         )}
+      </DragDropContext>
 
-            </DragDropContext>
+      {/* Dialog tạo List */}
+      <Dialog open={openListDialog} onClose={() => setOpenListDialog(false)}>
+      <DialogTitle>{editingList ? 'Edit List' : 'Create New List'}</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="List Title"
+            variant="outlined"
+            fullWidth
+            value={newList.title}
+            onChange={(e) => setNewList({ ...newList, title: e.target.value })}
+          />
 
-            {/* Dialog tạo List */ }
-            <Dialog open={ openListDialog } onClose={ () => setOpenListDialog(false) }>
-                <DialogTitle>{ editingList ? 'Edit List' : 'Create New List' }</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        label="List Title"
-                        variant="outlined"
-                        fullWidth
-                        value={ newList.title }
-                        onChange={ (e) => setNewList({ ...newList, title: e.target.value }) }
-                    />
-
-                    <Box sx={ { marginTop: 2, display: 'flex', gap: 1 } }>
-                        <Button variant="contained" onClick={ editingList ? handleUpdateList : handleCreateList }>
-                            { editingList ? 'Update List' : 'Create List' }
-                        </Button>
-                        { editingList && (
-                            <Button
-                                variant="outlined"
-                                color="secondary"
-                                onClick={ () => {
-                                    setEditingList(null);
-                                    setNewList({ title: '' });
-                                    setOpenListDialog(false);
-                                } }
-                            >
-                                Cancel
-                            </Button>
-                        ) }
-                    </Box>
-
-                </DialogContent>
-            </Dialog>
+          <Box sx={{ marginTop: 2, display: 'flex', gap: 1 }}>
+            <Button variant="contained" onClick={editingList ? handleUpdateList : handleCreateList}>
+              {editingList ? 'Update List' : 'Create List'}
+            </Button>
+            {editingList && (
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => {
+                  setEditingList(null);
+                  setNewList({ title: '' });
+                  setOpenListDialog(false);
+                }}
+              >
+                Cancel
+              </Button>
+            )}
+          </Box>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog tạo Card */}
       <Dialog open={openCardDialog} onClose={() => setOpenCardDialog(false)}>
@@ -743,6 +880,7 @@ const BoardPage = () => {
           </Box>
         </DialogContent>
       </Dialog>
+
       {/* Dialog for updating due date */}
       <Dialog open={openDueDateDialog} onClose={() => setOpenDueDateDialog(false)}>
         <DialogTitle>Update Due Date</DialogTitle>
@@ -826,7 +964,6 @@ const BoardPage = () => {
           </Box>
         </DialogContent>
       </Dialog>
-
     </Box>
   );
 };
