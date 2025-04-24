@@ -1,466 +1,388 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
-    Box,
-    Button,
-    Typography,
-    Card,
-    CardContent,
-    TextField,
-    Select,
-    MenuItem,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    FormControlLabel,
-    Checkbox,
-    IconButton,
-    Stack
+  Grid,
+  Box,
+  Button,
+  Typography,
+  Card,
+  CardContent,
+  IconButton,
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  TextField
 } from '@mui/material';
-// import DeleteIcon from '@mui/icons-material/Delete';
-// import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { getAuth } from 'firebase/auth';
-import { useParams } from 'react-router-dom';
-import { apiBoardGetById, apiGetCard } from '../services/api';
-import CardForm from '../components/CardForm';
-import DroppableList from '../components/DroppableList';
-
-const columnColors = {
-    expired: {
-        background: 'rgba(255, 0, 0, 0.1)',
-        border: 'rgba(255, 0, 0, 0.3)'
-    },
-    todo: {
-        background: 'rgba(0, 0, 255, 0.1)',
-        border: 'rgba(0, 0, 255, 0.3)'
-    },
-    doing: {
-        background: 'rgba(255, 165, 0, 0.1)',
-        border: 'rgba(255, 165, 0, 0.3)'
-    },
-    done: {
-        background: 'rgba(0, 255, 0, 0.1)',
-        border: 'rgba(0, 255, 0, 0.3)'
-    }
-};
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import io from 'socket.io-client';
 
 const BoardPage = () => {
-    const auth = getAuth();
-    const { boardId } = useParams();
+  const { boardId } = useParams();
+  const auth = getAuth();
 
-    const [tasks, setTasks] = useState({
-        expired: [],
-        todo: [],
-        doing: [],
-        done: [],
-    });
-    const [showTaskForm, setShowTaskForm] = useState(false);
-    const [editingTask, setEditingTask] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filterStatus, setFilterStatus] = useState('all');
-    const [filterPriority, setFilterPriority] = useState('all');
-    const [sortOrder, setSortOrder] = useState('asc');
+  const [lists, setLists] = useState([]);
+  const [openCardDialog, setOpenCardDialog] = useState(false);
+  const [openListDialog, setOpenListDialog] = useState(false);
+  const [newCard, setNewCard] = useState({ title: '', description: '', listId: '' });
+  const [newList, setNewList] = useState({ title: '' });
+  const [editingList, setEditingList] = useState(null); // nếu khác null thì đang sửa
 
-    const [boardData, setBoardData] = useState();
-
-    useEffect(() => {
-        // const fetchTasks = async () => {
-        //     const currentUser = auth.currentUser;
-        //     if (!currentUser) return;
-
-        //     try {
-        //         const response = apiGetCard();
-
-        //         // console.log('API Response:', response.data);
-
-        //         const today = new Date();
-        //         const categorizedTasks = {
-        //             expired: [],
-        //             todo: [],
-        //             doing: [],
-        //             done: [],
-        //         };
-
-        //         for (const task of response.data) {
-        //             if (task.userId !== currentUser.uid) continue;
-
-        //             const dueDate = new Date(task.dueDate._seconds * 1000);
-        //             if (!task.isCompleted && dueDate < today) {
-        //                 task.status = 'Expired';
-        //                 task.statusEnum = 0;
-        //                 await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, {
-        //                     ...task,
-        //                     status: 'Expired',
-        //                     statusEnum: 0,
-        //                 });
-        //             }
-
-        //             if (task.statusEnum === 0) {
-        //                 categorizedTasks.expired.push(task);
-        //             } else if (task.statusEnum === 1) {
-        //                 categorizedTasks.todo.push(task);
-        //             } else if (task.statusEnum === 2) {
-        //                 categorizedTasks.doing.push(task);
-        //             } else if (task.statusEnum === 3) {
-        //                 categorizedTasks.done.push(task);
-        //             } else {
-        //                 categorizedTasks.todo.push(task);
-        //             }
-        //         }
-
-        //         console.log('Categorized Tasks:', categorizedTasks);
-        //         setTasks(categorizedTasks);
-        //     } catch (error) {
-        //         console.error('Error fetching tasks:', error);
-        //     }
-        // };
-
-        // fetchTasks();
-        fetchBoard();
-    }, [boardId]);
-
-    // useEffect(() => fetchBoard(), [boardId]);
-
-    async function fetchBoard () {
-        const res = await apiBoardGetById(boardId);
-
-        setBoardData(res.data);
-        console.log(JSON.stringify(res.data));
-    }
-
-    // const formatDueDate = (dueDate) => {
-    //     const date = new Date(dueDate._seconds * 1000);
-    //     return date.toLocaleDateString('en-US');
-    // };
-
-    // const updateTaskOnServer = async (task) => {
-    //     try {
-    //         await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, task);
-    //     } catch (error) {
-    //         console.error('Error updating task on the server:', error);
-    //     }
-    // };
-
-    // const handleCheckboxChange = async (taskId, isChecked) => {
-    //     try {
-    //         const updatedTasks = { ...tasks };
-    //         let updatedTask;
-
-    //         for (let status in updatedTasks) {
-    //             const taskIndex = updatedTasks[status].findIndex(task => task.id === taskId);
-    //             if (taskIndex !== -1) {
-    //                 updatedTask = updatedTasks[status][taskIndex];
-    //                 updatedTasks[status].splice(taskIndex, 1);
-    //                 break;
-    //             }
-    //         }
-
-    //         if (updatedTask) {
-    //             const today = new Date();
-    //             const dueDate = new Date(updatedTask.dueDate._seconds * 1000);
-
-    //             updatedTask.isCompleted = isChecked;
-    //             if (isChecked) {
-    //                 updatedTask.status = 'Done';
-    //                 updatedTask.statusEnum = 3;
-    //                 updatedTasks.done.push(updatedTask);
-    //             } else {
-    //                 if (dueDate < today) {
-    //                     updatedTask.status = 'Expired';
-    //                     updatedTask.statusEnum = 0;
-    //                     updatedTasks.expired.push(updatedTask);
-    //                 } else {
-    //                     updatedTask.status = 'Todo';
-    //                     updatedTask.statusEnum = 1;
-    //                     updatedTasks.todo.push(updatedTask);
-    //                 }
-    //             }
-
-    //             setTasks(updatedTasks);
-    //             await updateTaskOnServer(updatedTask);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error updating task:', error);
-    //     }
-    // };
-
-    // const handleDeleteTask = async (taskId) => {
-    //     try {
-    //         setTasks(prevTasks => {
-    //             const updatedTasks = { ...prevTasks };
-    //             for (let status in updatedTasks) {
-    //                 updatedTasks[status] = updatedTasks[status].filter(task => task.id !== taskId);
-    //             }
-    //             return updatedTasks;
-    //         });
-
-    //         await axios.delete(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${taskId}`);
-    //     } catch (error) {
-    //         console.error('Error deleting task:', error);
-    //     }
-    // };
-
-    // const handleEditTask = async (updatedTask) => {
-    //     try {
-    //         const updatedTasks = { ...tasks };
-    //         for (let status in updatedTasks) {
-    //             const taskIndex = updatedTasks[status].findIndex(task => task.id === updatedTask.id);
-    //             if (taskIndex !== -1) {
-    //                 updatedTasks[status][taskIndex] = updatedTask;
-    //                 break;
-    //             }
-    //         }
-
-    //         setTasks(updatedTasks);
-    //         await updateTaskOnServer(updatedTask);
-    //     } catch (error) {
-    //         console.error('Error editing task:', error);
-    //     }
-    // };
-
-    // const handleTaskUpdated = (updatedTask) => {
-    //     handleEditTask(updatedTask);
-    //     setShowTaskForm(false);
-    //     setEditingTask(null);
-    // };
-
-    const onDragEnd = async (result) => {
-        const { destination, source } = result;
-
-        if (!destination) return;
-
-        // Prevent dragging expired tasks and dragging tasks to the expired or done column
-        if (source.droppableId === 'expired' || destination.droppableId === 'expired' || destination.droppableId === 'done' || source.droppableId === 'done') {
-            return;
-        }
-
-        if (destination.droppableId === source.droppableId) {
-            return;
-        }
-
-        const sourceColumn = Array.from(tasks[source.droppableId]);
-        const destinationColumn = Array.from(tasks[destination.droppableId]);
-        const [movedTask] = sourceColumn.splice(source.index, 1);
-        destinationColumn.splice(destination.index, 0, movedTask);
-
-        movedTask.statusEnum = destination.droppableId === 'todo' ? 1 :
-            destination.droppableId === 'doing' ? 2 : 3;
-        movedTask.status = destination.droppableId.charAt(0).toUpperCase() + destination.droppableId.slice(1);
-        setTasks({
-            ...tasks,
-            [source.droppableId]: sourceColumn,
-            [destination.droppableId]: destinationColumn,
+  useEffect(() => {
+    // Kết nối Socket.IO
+    const socket = io(`${process.env.REACT_APP_BACKEND_API_URL}`); // Đảm bảo dùng đúng URL server backend
+    // Lắng nghe sự kiện 'newList' và cập nhật UI khi có List mới
+    socket.on('newList', (newList) => {
+        setLists((prevLists) => [...prevLists, {...newList, cards: []}]);
+        setOpenListDialog(false);
+      });
+  
+      // Lắng nghe sự kiện 'newCard' và cập nhật UI khi có Card mới
+      socket.on('newCard', (newCard) => {
+        setLists((prevLists) => {
+          return prevLists.map((list) => {
+            if (list._id === newCard.listId) {
+              return { ...list, cards: [...list.cards, newCard] };
+            }
+            return list;
+          });
         });
+      });
+      socket.on('updateList', (updatedList) => {
+        setLists((prev) =>
+            [...prev.map((list) =>
+              list._id === updatedList._id ? { ...updatedList, cards: list.cards } : list
+            )].sort((a, b) => a.position - b.position)
+          );
+          
+      });
+      
+      socket.on('deleteList', ({ listId }) => {
+        setLists((prev) => prev.filter((list) => list._id !== listId));
+      });
+      
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser || !boardId) return;
 
-        try {
-            await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${movedTask.id}`, movedTask);
-        } catch (error) {
-            console.error('Error updating task status on the server:', error);
-        }
-    };
+      console.log('Authenticated user:', currentUser.uid);
 
-    const handleTaskCreated = (newTask) => {
-        setTasks(prevTasks => ({
-            ...prevTasks,
-            todo: [...prevTasks.todo, newTask],
-        }));
-        setShowTaskForm(false);
-    };
+      try {
+        const listRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/board/${boardId}`);
+        const lists = listRes.data;
 
-    const calculateTotalFocusTime = (task) => {
-        if (!task.focusSessions) return 0;
-        return task.focusSessions.reduce((total, session) => total + session.duration, 0);
-    };
+        const listWithCards = await Promise.all(
+          lists.map(async (list) => {
+            try {
+              const cardRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/card/list/${list._id}`);
+              return { ...list, cards: cardRes.data || [] };
+            } catch (err) {
+              console.error(`Error fetching cards for list ${list._id}`, err);
+              return { ...list, cards: [] };
+            }
+          })
+        );
 
-    // const filteredTasks = Object.keys(tasks).reduce((acc, status) => {
-    //     acc[status] = tasks[status].filter(task => {
-    //         const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
-    //         const matchesFilterStatus = filterStatus === 'all' || task.status === filterStatus;
-    //         const matchesFilterPriority = filterPriority === 'all' || task.priority === filterPriority;
-    //         return matchesSearch && matchesFilterStatus && matchesFilterPriority;
-    //     });
-    //     return acc;
-    // }, {});
+        setLists(listWithCards);
+        console.log('Fetched lists + cards:', listWithCards);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      }
+    });
 
-    // const sortedTasks = Object.keys(filteredTasks).reduce((acc, status) => {
-    //     acc[status] = filteredTasks[status].sort((a, b) => {
-    //         if (sortOrder === 'asc') {
-    //             return new Date(a.dueDate._seconds * 1000) - new Date(b.dueDate._seconds * 1000);
-    //         } else {
-    //             return new Date(b.dueDate._seconds * 1000) - new Date(a.dueDate._seconds * 1000);
-    //         }
-    //     });
-    //     return acc;
-    // }, {});
+    return () => {
+        unsubscribe();
+        socket.disconnect();
+    }
+  }, [boardId]);
 
-    return (
-        <Box sx={ { padding: 3 } }>
-            <Typography variant="h4" gutterBottom>{ boardData ? boardData.title : '' }</Typography>
+  const handleCreateCard = async () => {
+    try {
+      const res = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/card`, {
+        title: newCard.title,
+        description: newCard.description,
+        listId: newCard.listId,
+      });
+    } catch (err) {
+      console.error('Error creating card:', err);
+    }
+  };
 
-            <Box sx={ { display: 'flex', gap: 2, marginBottom: 2 } }>
-                <Button
-                    variant="contained"
-                    onClick={ () => {
-                        setEditingTask(null);
-                        setShowTaskForm(true);
-                    } }
-                >
-                    Create Task
-                </Button>
-            </Box>
+  const handleCreateList = async () => {
+    try {
+      const res = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/list`, {
+        title: newList.title,
+        boardId,
+        position: lists.length > 0 ? lists[lists.length - 1].position + 1 : 0
+      });
+    } catch (err) {
+      console.error('Error creating list:', err);
+    }
+  };
+  
+  const handleEditList = (listId) => {
+    const list = lists.find((l) => l._id === listId);
+    if (list) {
+      setEditingList(list);
+      setNewList({ title: list.title });
+      setOpenListDialog(true);
+    }
+  };
+  const handleUpdateList = async () => {
+    try {
+      const res = await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/${editingList._id}`, {
+        title: newList.title,
+      });
+  
+      // Cập nhật UI
+      setLists((prevLists) =>
+        prevLists.map((list) =>
+          list._id === editingList._id ? { ...list, title: newList.title } : list
+        )
+      );
+  
+      setEditingList(null);
+      setNewList({ title: '' });
+      setOpenListDialog(false);
+    } catch (err) {
+      console.error('Error updating list:', err);
+    }
+  };
+  
+  const formatDueDate = (dueDate) => {
+    const date = new Date(dueDate);
+    return date.toLocaleDateString('en-US');
+  };
 
-            <Dialog open={ showTaskForm } onClose={ () => setShowTaskForm(false) }>
-                <DialogTitle>
-                    { editingTask ? 'Edit Task' : 'Create Task' }
-                </DialogTitle>
-                <DialogContent>
-                    <CardForm>
+  const handleDeleteList = async (listId) => {
+    try {
+        const res = await axios.delete(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/${listId}`);
+    } catch (err) {
+        console.error('Error deleting list:', err);
+    }
+  };
 
-                    </CardForm>
-                </DialogContent>
-            </Dialog>
+  const onDragEnd = async (result) => {
+    const { source, destination, draggableId, type } = result;
+  
+    if (!destination) return;
+  
+    // Kéo thả danh sách
+    if (type === 'LIST') {
+      const newLists = Array.from(lists);
+      const draggedList = newLists.splice(source.index, 1)[0];
+      newLists.splice(destination.index, 0, draggedList);
+  
+      // Tính toán position mới
+      let newPosition = 0;
+  
+      if (destination.index === 0) {
+        // Đầu tiên
+        newPosition = newLists[1]?.position - 1 || 0;
+      } else if (destination.index === newLists.length - 1) {
+        // Cuối cùng
+        newPosition = newLists[newLists.length - 2]?.position + 1 || 0;
+      } else {
+        const left = newLists[destination.index - 1];
+        const right = newLists[destination.index + 1];
+        newPosition = (left.position + right.position) / 2;
+      }
+  
+      // Gửi update vị trí lên backend
+      try {
+        await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/${draggedList._id}`, {
+          position: newPosition
+        });
+      } catch (err) {
+        console.error('Error updating list position:', err);
+      }
+    }
+  };
+  
 
-            <Box sx={ { display: 'flex', gap: 2, marginBottom: 2 } }>
-                <TextField
-                    label="Search tasks"
-                    variant="outlined"
-                    value={ searchTerm }
-                    onChange={ (e) => setSearchTerm(e.target.value) }
-                    fullWidth
-                />
-                <Select
-                    value={ filterStatus }
-                    onChange={ (e) => setFilterStatus(e.target.value) }
-                    variant="outlined"
-                >
-                    <MenuItem value="all">All Status</MenuItem>
-                    <MenuItem value="Todo">Todo</MenuItem>
-                    <MenuItem value="Doing">Doing</MenuItem>
-                    <MenuItem value="Done">Done</MenuItem>
-                    <MenuItem value="Expired">Expired</MenuItem>
-                </Select>
-                <Select
-                    value={ filterPriority }
-                    onChange={ (e) => setFilterPriority(e.target.value) }
-                    variant="outlined"
-                >
-                    <MenuItem value="all">All Priorities</MenuItem>
-                    <MenuItem value="Low">Low</MenuItem>
-                    <MenuItem value="Medium">Medium</MenuItem>
-                    <MenuItem value="High">High</MenuItem>
-                </Select>
-                <Select
-                    value={ sortOrder }
-                    onChange={ (e) => setSortOrder(e.target.value) }
-                    variant="outlined"
-                >
-                    <MenuItem value="asc">Due Date Ascending</MenuItem>
-                    <MenuItem value="desc">Due Date Descending</MenuItem>
-                </Select>
-            </Box>
-
-            <DragDropContext onDragEnd={ onDragEnd }>
-                <Stack direction="row" container spacing={ 2 }>
-                    { ['expired', 'todo', 'doing', 'done'].map((status) => (
-                        // <Stack item xs={ 12 } sm={ 6 } md={ 3 } key={ status }>
-                        //     <Droppable droppableId={ status }>
-                        //         { (provided) => (
-                        //             <Box
-                        //                 ref={ provided.innerRef }
-                        //                 { ...provided.droppableProps }
-                        //                 sx={ {
-                        //                     border: '1px solid',
-                        //                     borderColor: columnColors[status].border,
-                        //                     borderRadius: 2,
-                        //                     padding: 2,
-                        //                     backgroundColor: columnColors[status].background
-                        //                 } }
-                        //             >
-                        //                 <Typography variant="h6">
-                        //                     { status.charAt(0).toUpperCase() + status.slice(1) }
-                        //                 </Typography>
-                        //                 { sortedTasks[status].map((task, index) => (
-                        //                     <Draggable
-                        //                         key={ task.id }
-                        //                         draggableId={ task.id }
-                        //                         index={ index }
-                        //                         isDragDisabled={ status === 'expired' }
-                        //                     >
-                        //                         { (provided) => (
-                        //                             <Card
-                        //                                 ref={ provided.innerRef }
-                        //                                 { ...provided.draggableProps }
-                        //                                 { ...provided.dragHandleProps }
-                        //                                 sx={ {
-                        //                                     marginBottom: 1,
-                        //                                     boxShadow: 2
-                        //                                 } }
-                        //                             >
-                        //                                 <CardContent>
-                        //                                     <Typography variant="subtitle1" sx={ { fontWeight: 'bold', fontSize: '1.25rem' } }>
-                        //                                         { task.title }
-                        //                                     </Typography>
-                        //                                     <Typography variant="body2">
-                        //                                         { task.description }
-                        //                                     </Typography>
-                        //                                     <Box sx={ { display: 'flex', justifyContent: 'space-between' } }>
-                        //                                         <Typography variant="caption">
-                        //                                             Due: { formatDueDate(task.dueDate) }
-                        //                                         </Typography>
-                        //                                         <Typography variant="caption">
-                        //                                             Priority: { task.priority }
-                        //                                         </Typography>
-                        //                                         <Typography variant="caption">
-                        //                                             Focus Time: { Math.round(calculateTotalFocusTime(task) / 60) } minutes
-                        //                                         </Typography>
-                        //                                     </Box>
-                        //                                     <Box sx={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }>
-                        //                                         <FormControlLabel
-                        //                                             control={
-                        //                                                 <Checkbox
-                        //                                                     checked={ task.isCompleted }
-                        //                                                     onChange={ (e) => handleCheckboxChange(task.id, e.target.checked) }
-                        //                                                 />
-                        //                                             }
-                        //                                             label={ task.isCompleted ? 'Completed' : 'Incomplete' }
-                        //                                         />
-                        //                                         <Box>
-                        //                                             <IconButton
-                        //                                                 onClick={ (e) => {
-                        //                                                     e.stopPropagation();
-                        //                                                     setEditingTask(task);
-                        //                                                     setShowTaskForm(true);
-                        //                                                 } }
-                        //                                             >
-                        //                                                 {/* <EditIcon /> */ }
-                        //                                             </IconButton>
-                        //                                             <IconButton
-                        //                                                 onClick={ (e) => {
-                        //                                                     e.stopPropagation();
-                        //                                                     handleDeleteTask(task.id);
-                        //                                                 } }
-                        //                                             >
-                        //                                                 {/* <DeleteIcon /> */ }
-                        //                                             </IconButton>
-                        //                                         </Box>
-                        //                                     </Box>
-                        //                                 </CardContent>
-                        //                             </Card>
-                        //                         ) }
-                        //                     </Draggable>
-                        //                 )) }
-                        //                 { provided.placeholder }
-                        //             </Box>
-                        //         ) }
-                        //     </Droppable>
-                        // </Stack>
-                        <DroppableList status={ status } />
-                    )) }
-                </Stack>
-            </DragDropContext>
+  return (
+    <Box sx={{ padding: 3 }}>
+      <DragDropContext onDragEnd={onDragEnd}>
+        {/* Nút tạo List */}
+        <Box sx={{ marginBottom: 2 }}>
+          <Button variant="contained" onClick={() => setOpenListDialog(true)}>
+            Create New List
+          </Button>
         </Box>
-    );
+
+        <Droppable key="board" droppableId="board" direction="horizontal" type="LIST">
+        {(provided) => (
+            <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            style={{ display: 'flex', overflowX: 'auto', paddingBottom: 16 }}
+            >
+            {lists.map((list, listIndex) => (
+                <Draggable key={list._id} draggableId={list._id} index={listIndex}>
+                {(listProvided) => (
+                    <div
+                    ref={listProvided.innerRef}
+                    {...listProvided.draggableProps}
+                    style={{
+                        ...listProvided.draggableProps.style,
+                        width: 300,
+                        marginRight: 16,
+                        flexShrink: 0,
+                    }}
+                    >
+                    <Box {...listProvided.dragHandleProps}>
+                        {/* List header */}
+                        <Typography variant="h6" sx={{ bgcolor: 'primary.main', color: 'white', textAlign: 'center', py: 1 }}>
+                        <IconButton 
+                            onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditList(list._id);
+                            }}
+                        >
+                            <EditIcon />
+                        </IconButton>
+                        {list.title}
+                        <IconButton color="error"
+                            onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteList(list._id);
+                            }}
+                        >
+                            <DeleteIcon />
+                        </IconButton>
+                        
+                        </Typography>
+                        
+                    </Box>
+
+                    {/* List content and cards */}
+                    <Droppable droppableId={list._id} type="CARD">
+                        {(provided) => (
+                        <Box
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            sx={{
+                            border: '1px solid',
+                            borderColor: 'grey.400',
+                            borderRadius: 2,
+                            p: 2,
+                            minHeight: 200,
+                            backgroundColor: 'grey.100',
+                            }}
+                        >
+                            
+
+                            {list.cards.map((card, index) => (
+                            <Draggable draggableId={card._id} index={index} key={card._id}>
+                                {(provided) => (
+                                <Card
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    sx={{ mb: 2 }}
+                                >
+                                    <CardContent>
+                                    <Typography variant="subtitle1">{card.title}</Typography>
+                                    <Typography variant="caption">
+                                        Deadline: {formatDueDate(card.dueDate)}
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                                )}
+                            </Draggable>
+                            ))}
+                            <Button
+                            fullWidth
+                            variant="contained"
+                            sx={{ mb: 2 }}
+                            onClick={() => {
+                                setNewCard({ ...newCard, listId: list._id });
+                                setOpenCardDialog(true);
+                            }}
+                            >
+                            Add Card
+                            </Button>
+                            {provided.placeholder}
+                        </Box>
+                        )}
+                    </Droppable>
+                    </div>
+                )}
+                </Draggable>
+            ))}
+            {provided.placeholder}
+            </div>
+        )}
+        </Droppable>
+
+      </DragDropContext>
+
+      {/* Dialog tạo List */}
+      <Dialog open={openListDialog} onClose={() => setOpenListDialog(false)}>
+      <DialogTitle>{editingList ? 'Edit List' : 'Create New List'}</DialogTitle>
+        <DialogContent>
+        <TextField
+        label="List Title"
+        variant="outlined"
+        fullWidth
+        value={newList.title}
+        onChange={(e) => setNewList({ ...newList, title: e.target.value })}
+        />
+
+            <Box sx={{ marginTop: 2, display: 'flex', gap: 1 }}>
+            <Button variant="contained" onClick={editingList ? handleUpdateList : handleCreateList}>
+                {editingList ? 'Update List' : 'Create List'}
+            </Button>
+            {editingList && (
+                <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => {
+                    setEditingList(null);
+                    setNewList({ title: '' });
+                    setOpenListDialog(false);
+                }}
+                >
+                Cancel
+                </Button>
+            )}
+            </Box>
+
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog tạo Card */}
+      <Dialog open={openCardDialog} onClose={() => setOpenCardDialog(false)}>
+        <DialogTitle>Create New Card</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Card Title"
+            variant="outlined"
+            fullWidth
+            value={newCard.title}
+            onChange={(e) => setNewCard({ ...newCard, title: e.target.value })}
+            sx={{ marginBottom: 2 }}
+          />
+          <TextField
+            label="Card Description"
+            variant="outlined"
+            fullWidth
+            value={newCard.description}
+            onChange={(e) => setNewCard({ ...newCard, description: e.target.value })}
+            sx={{ marginBottom: 2 }}
+          />
+          <Box sx={{ marginTop: 2 }}>
+            <Button variant="contained" onClick={handleCreateCard}>
+              Create Card
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
+    </Box>
+  );
 };
 
 export default BoardPage;
