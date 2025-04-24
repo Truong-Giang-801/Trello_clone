@@ -162,3 +162,4 @@ D:\Trello_clone\UserServiceApi\obj\Debug\net9.0\refint\UserServiceApi.dll
 D:\Trello_clone\UserServiceApi\obj\Debug\net9.0\UserServiceApi.pdb
 D:\Trello_clone\UserServiceApi\obj\Debug\net9.0\UserServiceApi.genruntimeconfig.cache
 D:\Trello_clone\UserServiceApi\obj\Debug\net9.0\ref\UserServiceApi.dll
+D:\Document for Uni\year 4\app design\Trello_clone\Trello_clone\UserServiceApi\bin\Debug\net9.0\package-lock.json
