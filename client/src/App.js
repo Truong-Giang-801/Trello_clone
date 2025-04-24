@@ -12,6 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import RedirectRoute from './components/RedirectRoute';
 import AdminPage from './pages/AdminPage';
 import WorkspacePage from './pages/WorkspacePage';
+import BoardPage from './pages/BoardPage';
 
 function App () {
   const [user, setUser] = useState(null);
@@ -44,79 +45,79 @@ function App () {
     <BrowserRouter>
       <Header />
       <Routes>
-        {/* Redirect logged-in users away from the homepage */}
+        {/* Redirect logged-in users away from the homepage */ }
         <Route
           path="/"
           element={
-            <RedirectRoute user={user}>
+            <RedirectRoute user={ user }>
               <HomePage />
             </RedirectRoute>
           }
         />
 
-        {/* Public Boards */}
+        {/* Public Boards */ }
         <Route
           path="public"
-          element={<PublicBoards />}
+          element={ <PublicBoards /> }
         />
 
-        {/* Private Boards (User Only) */}
+        {/* Private Boards (User Only) */ }
         <Route
           path="private"
           element={
-            <ProtectedRoute user={user} requiredRole="User">
+            <ProtectedRoute user={ user } requiredRole="User">
               <UserBoards />
             </ProtectedRoute>
           }
         />
 
-        {/* Admin Page (Admin Only) */}
+        {/* Admin Page (Admin Only) */ }
         <Route
           path="admin"
           element={
-            <ProtectedRoute user={user} requiredRole="Admin">
+            <ProtectedRoute user={ user } requiredRole="Admin">
               <AdminPage />
             </ProtectedRoute>
           }
         />
 
-        {/* Board Page (User Only) */}
+        {/* Board Page (User Only) */ }
         <Route
           path="board/:boardId"
           element={
-            <ProtectedRoute user={user} requiredRole="User">
+            <ProtectedRoute user={ user } requiredRole="User">
               <BoardPage />
             </ProtectedRoute>
           }
         />
 
-        {/* Login */}
+        {/* Login */ }
         <Route
           path="login"
           element={
-            <RedirectRoute user={user}>
+            <RedirectRoute user={ user }>
               <Login />
             </RedirectRoute>
           }
         />
 
-        {/* Register */}
+        {/* Register */ }
         <Route
           path="register"
           element={
-            <RedirectRoute user={user}>
+            <RedirectRoute user={ user }>
               <Register />
             </RedirectRoute>
           }
         />
-          <Route
-            path="workspace/:workspaceId"
-            element={
-              <ProtectedRoute user={ user } requiredRole="User">
-                <WorkspacePage />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path="workspace/:workspaceId"
+          element={
+            <ProtectedRoute user={ user } requiredRole="User">
+              <WorkspacePage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

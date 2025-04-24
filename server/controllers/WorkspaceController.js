@@ -64,7 +64,7 @@ async function updateWorkspace (req, res) {
 export default {
     createWorkspace,
     getAllWorkspaceByUser,
-    getAllWorkspaces
+    getAllWorkspaces,
     getWorkspace,
     updateWorkspace
 };
