@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiBoardGetAllBoardPublic } from '../services/api';
-import { Grid, Grid2 } from '@mui/material';
+import { Grid2 } from '@mui/material';
 import BoardButton from '../components/BoardButton';
 
 // import axios from 'axios';

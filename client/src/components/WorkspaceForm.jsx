@@ -5,9 +5,7 @@ import {
   Button,
   Typography,
   Box,
-  Stack,
-  Switch,
-  FormControlLabel,
+  Stack
 } from '@mui/material';
 
 export const WorkspaceForm = ({ onFormSummited }) => {
