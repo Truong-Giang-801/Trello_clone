@@ -22,6 +22,15 @@ export class WorkspaceService {
       return error;
     }
   }
+  async getAllWorkspaces() {
+    try {
+      const workspaces = await WorkspaceMongoose.find().exec();
+      return workspaces;
+    } catch (error) {
+      console.error("Error fetching all workspaces:", error);
+      throw error;
+    }
+  }
 
   // async updateBoard (userId, userData) {
   //   console.log(userId);

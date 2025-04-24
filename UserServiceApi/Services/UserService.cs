@@ -24,27 +24,40 @@ public class UserService
     }
     public async Task<List<User>> SyncUsersFromFirebaseAsync()
     {
-        // Delete all users from MongoDB
-
         // Fetch all users from Firebase Authentication
         var users = new List<User>();
         var pagedEnumerable = FirebaseAuth.DefaultInstance.ListUsersAsync(null);
+
         await foreach (var userRecord in pagedEnumerable)
         {
-            users.Add(new User
+            var user = new User
             {
                 Uid = userRecord.Uid,
                 Email = userRecord.Email ?? string.Empty,
                 DisplayName = userRecord.DisplayName,
                 PhoneNumber = userRecord.PhoneNumber,
                 role = "User" // Default role, adjust as needed
-            });
-        }
+            };
 
-        // Insert all users into MongoDB
-        if (users.Any())
-        {
-            await _users.InsertManyAsync(users);
+            // Check if the email already exists in MongoDB
+            var existingUser = await _users.Find(u => u.Email == user.Email).FirstOrDefaultAsync();
+
+            if (existingUser != null)
+            {
+                // Update the existing user
+                await _users.ReplaceOneAsync(
+                    u => u.Email == user.Email,
+                    user,
+                    new ReplaceOptions { IsUpsert = true } // Perform upsert
+                );
+            }
+            else
+            {
+                // Insert the new user
+                await _users.InsertOneAsync(user);
+            }
+
+            users.Add(user);
         }
 
         // Return the list of synchronized users
