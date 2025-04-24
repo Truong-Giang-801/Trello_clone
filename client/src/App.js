@@ -11,8 +11,9 @@ import BoardRouteWrapper from './pages/BoardRouteWrapper';
 import ProtectedRoute from './components/ProtectedRoute';
 import RedirectRoute from './components/RedirectRoute';
 import AdminPage from './pages/AdminPage';
+import WorkspacePage from './pages/WorkspacePage';
 
-function App() {
+function App () {
   const [user, setUser] = useState(null);
   const auth = getAuth();
 
@@ -43,51 +44,79 @@ function App() {
     <BrowserRouter>
       <Header />
       <Routes>
-        <Route path="/">
-          <Route index element={<HomePage />} />
+        {/* Redirect logged-in users away from the homepage */}
+        <Route
+          path="/"
+          element={
+            <RedirectRoute user={user}>
+              <HomePage />
+            </RedirectRoute>
+          }
+        />
+
+        {/* Public Boards */}
+        <Route
+          path="public"
+          element={<PublicBoards />}
+        />
+
+        {/* Private Boards (User Only) */}
+        <Route
+          path="private"
+          element={
+            <ProtectedRoute user={user} requiredRole="User">
+              <UserBoards />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Page (Admin Only) */}
+        <Route
+          path="admin"
+          element={
+            <ProtectedRoute user={user} requiredRole="Admin">
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Board Page (User Only) */}
+        <Route
+          path="board/:boardId"
+          element={
+            <ProtectedRoute user={user} requiredRole="User">
+              <BoardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Login */}
+        <Route
+          path="login"
+          element={
+            <RedirectRoute user={user}>
+              <Login />
+            </RedirectRoute>
+          }
+        />
+
+        {/* Register */}
+        <Route
+          path="register"
+          element={
+            <RedirectRoute user={user}>
+              <Register />
+            </RedirectRoute>
+          }
+        />
           <Route
-            path="public"
+            path="workspace/:workspaceId"
             element={
-              <PublicBoards />
-            }
-          />
-          <Route
-            path="private"
-            element={
-              <ProtectedRoute user={user} requiredRole="User">
-                <UserBoards />
+              <ProtectedRoute user={ user } requiredRole="User">
+                <WorkspacePage />
               </ProtectedRoute>
             }
           />
-          <Route
-            path="admin"
-            element={
-              <ProtectedRoute user={user} requiredRole="Admin">
-                <AdminPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="board/:boardId"
-            element={<BoardRouteWrapper user={user} />}
-          />
-          <Route
-            path="login"
-            element={
-              <RedirectRoute user={user}>
-                <Login />
-              </RedirectRoute>
-            }
-          />
-          <Route
-            path="register"
-            element={
-              <RedirectRoute user={user}>
-                <Register />
-              </RedirectRoute>
-            }
-          />
-        </Route>
       </Routes>
     </BrowserRouter>
   );

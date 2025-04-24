@@ -14,7 +14,9 @@ export const apiBoardGetAllBoardPublic = () => api.get(`/board`);
 export const apiBoardGetAllBoardByWorkspace = (workspaceId) => api.get(`/board/all/${workspaceId}`);
 
 export const apiUserCreateWorkspace = (workspace) => api.post(`/workspace`, workspace);
-export const apiUserAllWorkspaceByUser = (userId) => api.get(`/workspace/${userId}`);
+export const apiGetWorkspace = (workspaceId) => api.get(`/workspace/${workspaceId}`);
+export const apiUpdateWorkspace = (workspace, workspaceId) => api.put(`/workspace/${workspaceId}`, workspace);
+export const apiUserAllWorkspaceByUser = (userId) => api.get(`/workspace/all/${userId}`);
 export const apiGetCard = 0;
 
 
