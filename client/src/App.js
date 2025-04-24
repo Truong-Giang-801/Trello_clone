@@ -43,58 +43,59 @@ function App() {
     <BrowserRouter>
       <Header />
       <Routes>
-        <Route path="/">
-          <Route index element={<HomePage />} />
-          <Route
-            path="public"
-            element={
-              <ProtectedRoute user={user} requiredRole="User">
-                <PublicBoards />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="private"
-            element={
-              <ProtectedRoute user={user} requiredRole="User">
-                <UserBoards />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="admin"
-            element={
-              <ProtectedRoute user={user} requiredRole="Admin">
-                <AdminPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="board/:boardId"
-            element={
-              <ProtectedRoute user={user} requiredRole="User">
-                <BoardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="login"
-            element={
-              <RedirectRoute user={user}>
-                <Login />
-              </RedirectRoute>
-            }
-          />
-          <Route
-            path="register"
-            element={
-              <RedirectRoute user={user}>
-                <Register />
-              </RedirectRoute>
-            }
-          />
-        </Route>
-      </Routes>
+  <Route path="/">
+    {/* Default route to Homepage */}
+    <Route index element={<HomePage />} />
+
+    {/* Other routes */}
+    <Route
+      path="public"
+      element={
+          <PublicBoards />
+      }
+    />
+    <Route
+      path="private"
+      element={
+        <ProtectedRoute user={user} requiredRole="User">
+          <UserBoards />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="admin"
+      element={
+        <ProtectedRoute user={user} requiredRole="Admin">
+          <AdminPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="board/:boardId"
+      element={
+        <ProtectedRoute user={user} requiredRole="User">
+          <BoardPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="login"
+      element={
+        <RedirectRoute user={user}>
+          <Login />
+        </RedirectRoute>
+      }
+    />
+    <Route
+      path="register"
+      element={
+        <RedirectRoute user={user}>
+          <Register />
+        </RedirectRoute>
+      }
+    />
+  </Route>
+</Routes>
     </BrowserRouter>
   );
 }
