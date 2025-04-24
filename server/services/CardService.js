@@ -1,7 +1,15 @@
+// CardService.js
 import { CardMongoose } from "../models/CardModel.js";
 
 class CardService {
-  constructor() {}
+  async getCardById(cardId) {
+    try {
+      const card = await CardMongoose.findById(cardId);
+      return card;
+    } catch (error) {
+      throw error;
+    }
+  }
 
   // Tạo mới một card
   async createCard(cardData) {
@@ -15,65 +23,84 @@ class CardService {
     }
   }
 
-  // Lấy card theo id
-  async getCardById(cardId) {
-    try {
-      const card = await CardMongoose.findOne({ _id: cardId }).exec();
-      return card;
-    } catch (error) {
-      console.error("Get Card Error:", error);
-      throw error;
-    }
-  }
-
-  // Lấy tất cả card theo listId
   async getAllCardByList(listId) {
     try {
-      const cards = await CardMongoose.find({ listId }).sort({ position: 1 }).exec();
+      const cards = await CardMongoose.find({ listId });
       return cards;
     } catch (error) {
-      console.error("Get All Cards Error:", error);
       throw error;
     }
   }
 
-  // Gán user vào card (assign)
-  async assignUser(cardId, userId) {
-    try {
-      const card = await CardMongoose.findById(cardId);
-      if (!card) throw new Error("Card not found");
-
-      if (!card.assignMember.includes(userId)) {
-        card.assignMember.push(userId);
-      }
-
-      return await card.save();
-    } catch (error) {
-      console.error("Assign User Error:", error);
-      throw error;
-    }
-  }
-
-  // Chỉnh sửa thông tin card
-  async editCard(cardId, updateData) {
-    try {
-      const updatedCard = await CardMongoose.findByIdAndUpdate(cardId, updateData, {
-        new: true,
-      });
-      return updatedCard;
-    } catch (error) {
-      console.error("Edit Card Error:", error);
-      throw error;
-    }
-  }
-
-  // Xoá card
   async deleteCard(cardId) {
     try {
-      const deleted = await CardMongoose.findByIdAndDelete(cardId);
-      return deleted;
+      const result = await CardMongoose.findByIdAndDelete(cardId);
+      return { success: true, deletedCard: result };
     } catch (error) {
-      console.error("Delete Card Error:", error);
+      throw error;
+    }
+  }
+
+  async assignUser(cardId, userId) {
+    try {
+      // We first get the card to check if the user is already assigned
+      const card = await CardMongoose.findById(cardId);
+      if (!card) {
+        throw new Error('Card not found');
+      }
+      
+      // Initialize assignedTo array if it doesn't exist
+      if (!card.assignedTo) {
+        card.assignedTo = [];
+      }
+      
+      // Check if user is already assigned to avoid duplicates
+      if (!card.assignedTo.includes(userId)) {
+        card.assignedTo.push(userId);
+      }
+      
+      const updatedCard = await card.save();
+      return updatedCard;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async removeAssignedUser(cardId, userId) {
+    try {
+      const updatedCard = await CardMongoose.findByIdAndUpdate(
+        cardId,
+        { $pull: { assignedTo: userId } },
+        { new: true }
+      );
+      return updatedCard;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async editCard(cardId, updates) {
+    try {
+      const updatedCard = await CardMongoose.findByIdAndUpdate(
+        cardId,
+        updates,
+        { new: true }
+      );
+      return updatedCard;
+    } catch (error) {
+      throw error;
+    }
+  }
+  // Add to CardService.js
+  async updatePosition(cardId, listId, position) {
+    try {
+      const updatedCard = await CardMongoose.findByIdAndUpdate(
+        cardId,
+        { listId, position },
+        { new: true }
+      );
+      return updatedCard;
+    } catch (error) {
       throw error;
     }
   }

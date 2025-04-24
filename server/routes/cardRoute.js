@@ -206,6 +206,7 @@ router.post('/', cardController.createCard);
 router.get('/list/:listId', cardController.getAllCardByList);
 router.delete('/:cardId', cardController.deleteCard);
 router.patch('/:cardId/assign', cardController.assignUser);
+router.delete('/cards/:cardId/assign/:userId', cardController.removeAssignedUser);
 router.put('/:cardId', cardController.editCard);
 
 export default router;
