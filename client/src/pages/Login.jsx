@@ -31,18 +31,22 @@ const Login = () => {
       // Sync the user with the backend
       await syncUserToBackend();
       // Check the user's role
-      if(result.user){
+      if (result.user) {
         const userData = await checkRole(result.user.uid);
         console.log("User role:", userData.role);
         // Redirect based on the user's role
         if (userData.role === "Admin") {
           navigate("/admin");
-        } else {
+        } else if (userData.role === "User") {
+          navigate("/private");
+        }
+        else {
           alert("Unknown role. Please contact support.");
         }
       }
+    }
 
-    } catch (err) {
+    catch (err) {
       alert(err.message);
     }
   };
@@ -58,7 +62,7 @@ const Login = () => {
           email: user.email,
           displayName: user.displayName,
           photoUrl: user.photoURL,
-          role : user.role,
+          role: user.role,
         }),
       });
     } catch (err) {
@@ -71,7 +75,7 @@ const Login = () => {
       console.error("No user is logged in.");
       return null;
     }
-  
+
     try {
       // Fetch user data from the backend using the UID
       const response = await fetch(`http://localhost:5277/api/users/uid/${userUid}`, {
@@ -80,11 +84,11 @@ const Login = () => {
           "Content-Type": "application/json",
         },
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to fetch user data");
       }
-  
+
       const userData = await response.json(); // Parse the response as JSON
       console.log("User data fetched successfully:", userData);
       return userData; // Return the user's role
