@@ -179,43 +179,63 @@ const BoardPage = () => {
     }
     fetchBoard()
       
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (!currentUser || !boardId) return;
-
-      console.log('Authenticated user:', currentUser.uid);
-
-      
-    });
+    
 
     return () => {
-      unsubscribe();
       socket.disconnect();
     }
   }, [boardId]);
 
   // Add this effect to fetch board members
   useEffect(() => {
-    const fetchBoardMembers = async () => {
-      if (board && board.memberIds && board.memberIds.length > 0) {
-        try {
-          // Fetch users one by one since there's no bulk endpoint
-          const memberPromises = board.memberIds.map(userId => 
-            axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/user/${userId}`)
-          );
-          
-          const responses = await Promise.all(memberPromises);
-          const fetchedMembers = responses.map(res => res.data);
-          setBoardMembers(fetchedMembers);
-        } catch (err) {
-          console.error('Error fetching board members:', err);
-        }
-      }
-    };
+    if (!board) return; // Wait until the board is loaded
 
-    if (board) {
-      fetchBoardMembers();
-      
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) return;
+
+      try {
+        console.log('Current user:', currentUser);
+        console.log('Board:', board);
+
+        // Fetch the current user's ID
+        const userRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/users/uid/${currentUser.uid}`);
+        const currentUserId = userRes.data._id;
+
+        // Fetch the workspace associated with the board to get the ownerId
+        const workspaceRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/workspace/${board.workspaceId}`);
+        const workspaceOwnerId = workspaceRes.data.ownerId;
+
+        // Check if the current user is the owner of the workspace
+        const isCurrentUserOwner = workspaceOwnerId === currentUserId;
+
+        // Fetch board members
+        if (board.memberIds && board.memberIds.length > 0) {
+          try {
+            const memberPromises = board.memberIds.map((userId) =>
+              axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/user/${userId}`)
+            );
+
+            const responses = await Promise.all(memberPromises);
+            const fetchedMembers = responses.map((res) => res.data);
+
+            setBoardMembers(fetchedMembers);
+
+            // Check if the current user is a member of the board
+            const isCurrentUserMember = fetchedMembers.some((member) => member._id === currentUserId);
+            setIsMemBer(isCurrentUserMember || isCurrentUserOwner); // User is a member if they are either a member or the owner
+          } catch (err) {
+            console.error('Error fetching board members:', err);
+          }
+        } else {
+          // If no members, only the owner can access
+          setIsMemBer(isCurrentUserOwner);
+        }
+      } catch (err) {
+        console.error('Error fetching current user, workspace, or board members:', err);
+      }
+    });
+
+    return () => unsubscribe();
   }, [board]);
 
   const handleCreateCard = async () => {
@@ -418,6 +438,15 @@ const BoardPage = () => {
     const { source, destination, type } = result;
   
     if (!destination) return;
+    if (!currentUser) {
+      alert('You must be logged in to modify this board.');
+      return;
+
+    }
+    if (!isMember) {
+      alert('You must be a member of this board to modify it.');
+      return;
+    }
   
     if (type === 'LIST') {
       const newLists = Array.from(lists);
@@ -546,17 +575,17 @@ const BoardPage = () => {
           <Typography 
             variant="h3" 
             onClick={() => setEditingBoardTitle(true)}
-            sx={{ cursor: currentUser ? 'pointer' : 'default' }}
+            sx={{ cursor: currentUser && isMember ? 'pointer' : 'default' }}
           >
             {board.title}
           </Typography>
         </Box>
       )}
       
-      <DragDropContext onDragEnd={onDragEnd}>
+      <DragDropContext  onDragEnd={onDragEnd}>
         {/* Nút tạo List */}
         <Box sx={{ marginBottom: 2 }}>
-          <Button variant="contained" onClick={() => setOpenListDialog(true)} disabled={!currentUser}>
+          <Button variant="contained" onClick={() => setOpenListDialog(true)} disabled={!currentUser  || !isMember}>
             Create New List
           </Button>
         </Box>
@@ -620,7 +649,7 @@ const BoardPage = () => {
                                   variant="h6" 
                                   component="span"
                                   onClick={() => setEditingListId(list._id)}
-                                  sx={{ cursor: currentUser ? 'pointer' : 'default', display: 'inline-block' }}
+                                  sx={{ cursor: currentUser  & isMember ? 'pointer' : 'default', display: 'inline-block' }}
                                 >
                                   {list.title}
                                 </Typography>
@@ -689,7 +718,7 @@ const BoardPage = () => {
                                           <Typography 
                                             variant="subtitle1" 
                                             onClick={() => setEditingCardId(card._id)}
-                                            sx={{ cursor: currentUser ? 'pointer' : 'default' }}
+                                            sx={{ cursor: currentUser  & isMember ? 'pointer' : 'default' }}
                                           >
                                             {card.title}
                                           </Typography>
@@ -706,7 +735,7 @@ const BoardPage = () => {
                                               setCurrentCard(card);
                                               setOpenDueDateDialog(true);
                                             }}
-                                            disabled={!currentUser}
+                                            disabled={!currentUser  || !isMember}
                                           >
                                             <AccessTimeFilledIcon />
                                           </IconButton>
@@ -717,7 +746,7 @@ const BoardPage = () => {
                                               fetchAssignedMembers(card._id);
                                               setOpenAssignDialog(true);
                                             }}
-                                            disabled={!currentUser}
+                                            disabled={!currentUser  || !isMember}
                                           >
                                             <PeopleIcon />
                                           </IconButton>
@@ -726,7 +755,7 @@ const BoardPage = () => {
                                               e.stopPropagation();
                                               handleDeleteCard(card._id, list._id);
                                             }}
-                                            disabled={!currentUser}
+                                            disabled={!currentUser  || !isMember}
                                           >
                                             <DeleteIcon />
                                           </IconButton>
@@ -744,7 +773,7 @@ const BoardPage = () => {
                                   setNewCard({ ...newCard, listId: list._id });
                                   setOpenCardDialog(true);
                                 }}
-                                disabled={!currentUser}
+                                disabled={!currentUser  || !isMember}
                               >
                                 Add Card
                               </Button>
@@ -756,7 +785,7 @@ const BoardPage = () => {
                                     e.stopPropagation();
                                     handleDeleteList(list._id);
                                   }}
-                                  disabled={!currentUser}
+                                  disabled={!currentUser  || !isMember}
                                 >
                                   <DeleteIcon />
                                 </IconButton>

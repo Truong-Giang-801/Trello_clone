@@ -84,9 +84,7 @@ function App () {
         <Route
           path="board/:boardId"
           element={
-            <ProtectedRoute user={user} requiredRole="User">
-              <BoardPage />
-            </ProtectedRoute>
+              <BoardRouteWrapper />
           }
         />
 
