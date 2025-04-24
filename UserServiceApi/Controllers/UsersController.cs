@@ -91,6 +91,12 @@ public class UsersController : ControllerBase
         await _userService.DeleteUserAsync(id);
         return NoContent();
     }
+    [HttpGet]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        var users = await _userService.GetAllUsersAsync();
+        return Ok(users);
+    }
     [HttpGet("uid/{uid}")]
     public async Task<IActionResult> GetUserByUid(string uid)
     {

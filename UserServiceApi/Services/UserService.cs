@@ -19,6 +19,10 @@ public class UserService
     {
         return await _users.Find(user => user.Uid == uid).FirstOrDefaultAsync();
     }
+    public async Task<List<User>> GetAllUsersAsync()
+    {
+        return await _users.Find(_ => true).ToListAsync();
+    }
     public async Task<List<User>> SyncUsersFromFirebaseAsync()
     {
         // Delete all users from MongoDB
