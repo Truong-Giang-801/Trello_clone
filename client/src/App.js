@@ -11,8 +11,9 @@ import BoardPage from './pages/BoardPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import RedirectRoute from './components/RedirectRoute';
 import AdminPage from './pages/AdminPage';
+import WorkspacePage from './pages/WorkspacePage';
 
-function App() {
+function App () {
   const [user, setUser] = useState(null);
   const auth = getAuth();
 
@@ -108,6 +109,14 @@ function App() {
             </RedirectRoute>
           }
         />
+          <Route
+            path="workspace/:workspaceId"
+            element={
+              <ProtectedRoute user={ user } requiredRole="User">
+                <WorkspacePage />
+              </ProtectedRoute>
+            }
+          />
       </Routes>
     </BrowserRouter>
   );

@@ -120,7 +120,9 @@ const UserBoards = () => {
                             height: '100px',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            color: 'green',
+                            borderColor: 'green'
                         } }>
                         New workspace
                     </Button>
