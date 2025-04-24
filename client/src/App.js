@@ -35,7 +35,7 @@ function App() {
         setUser(null); // Clear user state when no user is logged in
       }
     });
-  
+
     return () => unsubscribe();
   }, [auth]);
 
@@ -45,7 +45,14 @@ function App() {
       <Routes>
         <Route path="/">
           <Route index element={<HomePage />} />
-          <Route path="public" element={<PublicBoards />} />
+          <Route
+            path="public"
+            element={
+              <ProtectedRoute user={user} requiredRole="User">
+                <PublicBoards />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="private"
             element={
