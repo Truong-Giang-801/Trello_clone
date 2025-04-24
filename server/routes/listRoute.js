@@ -151,7 +151,7 @@
  */
 
 import express from 'express';
-import listController from '../controllers/ListController.js';  // Using import
+import listController from '../controllers/listController.js';  // Using import
 const router = express.Router();
 
 router.get('/:listId', listController.getListById);
