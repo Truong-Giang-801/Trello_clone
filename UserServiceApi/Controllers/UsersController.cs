@@ -24,7 +24,6 @@ public class UsersController : ControllerBase
         var users = await _userService.SyncUsersFromFirebaseAsync();
         return Ok(users); // Return the list of synchronized users
     }
-
     /// <summary>
     /// Creates a new user.
     /// </summary>
@@ -79,6 +78,7 @@ public class UsersController : ControllerBase
     /// <summary>
     /// Deletes a user by ID.
     /// </summary>
+    /// 
     [HttpDelete("{id:length(24)}")]
     public async Task<IActionResult> DeleteUser(string id)
     {
@@ -90,5 +90,16 @@ public class UsersController : ControllerBase
 
         await _userService.DeleteUserAsync(id);
         return NoContent();
+    }
+    [HttpGet("uid/{uid}")]
+    public async Task<IActionResult> GetUserByUid(string uid)
+    {
+        var user = await _userService.GetUserByUidAsync(uid);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(user);
     }
 }

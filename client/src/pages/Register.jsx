@@ -19,13 +19,33 @@ const Register = () => {
 
   const handleRegister = async () => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      await syncUserToBackend(result.user);
       navigate("/user-boards");
+
     } catch (err) {
       alert(err.message);
     }
   };
+  const syncUserToBackend = async (user) => {
+    try {
+      await fetch("http://localhost:5000/api/user/sync", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoUrl: user.photoURL,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to sync user:", err);
+    }
 
+  };
 
   return (
     <Container maxWidth="sm">
