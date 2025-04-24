@@ -15,6 +15,17 @@ async function createWorkspace (req, res) {
     }
 }
 
+async function getWorkspace (req, res) {
+    try {
+        const { workspaceId } = req.params;
+        const workspace = await workspaceService.getWorkspace(workspaceId);
+        res.status(201).json(workspace);
+    } catch (error) {
+        console.error('Error getting workspace:', error);
+        res.status(500).send('Internal server error');
+    }
+}
+
 async function getAllWorkspaceByUser (req, res) {
     try {
         const { ownerId } = req.params;
@@ -26,7 +37,24 @@ async function getAllWorkspaceByUser (req, res) {
     }
 }
 
+async function updateWorkspace (req, res) {
+    try {
+        const { workspaceId } = req.params;
+        const { title, description, ownerId, members } = req.body;
+        const workspace = new WorkspaceModel({ title, description, ownerId, members });
+        // console.log(JSON.stringify(workspace));
+
+        const updatedWorkspace = await workspaceService.updateWorkspace(workspace, workspaceId);
+        res.status(201).json(updatedWorkspace);
+    } catch (error) {
+        console.error('Error creating workspace:', error);
+        res.status(500).send('Internal server error');
+    }
+}
+
 export default {
     createWorkspace,
-    getAllWorkspaceByUser
+    getWorkspace,
+    getAllWorkspaceByUser,
+    updateWorkspace
 };

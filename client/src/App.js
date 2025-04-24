@@ -11,8 +11,9 @@ import BoardPage from './pages/BoardPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import RedirectRoute from './components/RedirectRoute';
 import AdminPage from './pages/AdminPage';
+import WorkspacePage from './pages/WorkspacePage';
 
-function App() {
+function App () {
   const [user, setUser] = useState(null);
   const auth = getAuth();
 
@@ -35,7 +36,7 @@ function App() {
         setUser(null); // Clear user state when no user is logged in
       }
     });
-  
+
     return () => unsubscribe();
   }, [auth]);
 
@@ -44,12 +45,12 @@ function App() {
       <Header />
       <Routes>
         <Route path="/">
-          <Route index element={<HomePage />} />
-          <Route path="public" element={<PublicBoards />} />
+          <Route index element={ <HomePage /> } />
+          <Route path="public" element={ <PublicBoards /> } />
           <Route
             path="private"
             element={
-              <ProtectedRoute user={user} requiredRole="User">
+              <ProtectedRoute user={ user } requiredRole="User">
                 <UserBoards />
               </ProtectedRoute>
             }
@@ -57,7 +58,7 @@ function App() {
           <Route
             path="admin"
             element={
-              <ProtectedRoute user={user} requiredRole="Admin">
+              <ProtectedRoute user={ user } requiredRole="Admin">
                 <AdminPage />
               </ProtectedRoute>
             }
@@ -65,15 +66,23 @@ function App() {
           <Route
             path="board/:boardId"
             element={
-              <ProtectedRoute user={user} requiredRole="User">
+              <ProtectedRoute user={ user } requiredRole="User">
                 <BoardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="workspace/:workspaceId"
+            element={
+              <ProtectedRoute user={ user } requiredRole="User">
+                <WorkspacePage />
               </ProtectedRoute>
             }
           />
           <Route
             path="login"
             element={
-              <RedirectRoute user={user}>
+              <RedirectRoute user={ user }>
                 <Login />
               </RedirectRoute>
             }
@@ -81,7 +90,7 @@ function App() {
           <Route
             path="register"
             element={
-              <RedirectRoute user={user}>
+              <RedirectRoute user={ user }>
                 <Register />
               </RedirectRoute>
             }

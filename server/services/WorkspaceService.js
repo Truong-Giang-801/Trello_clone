@@ -12,11 +12,33 @@ export class WorkspaceService {
     }
   }
 
+  async getWorkspace (id) {
+    try {
+      const ref = await WorkspaceMongoose.findById(id).exec();
+      return ref;
+    } catch (error) {
+      return error;
+    }
+  }
+
   async getAllWorkspaceByUser (ownerId) {
     try {
       const ref = await WorkspaceMongoose.find({ ownerId: ownerId }).exec();
-      // const userWorkspaces = this.collection.filter((workspace) => workspace.userId === userId);
-      // console.log(JSON.stringify(ref, null, 2));
+      return ref;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async updateWorkspace (workspace, workspaceId) {
+    try {
+      const ref = await WorkspaceMongoose.findOneAndUpdate({ _id: workspaceId }, {
+        title: workspace.title,
+        description: workspace.description,
+        members: workspace.members,
+        ownerId: workspace.ownerId,
+      }).exec();
+
       return ref;
     } catch (error) {
       return error;
