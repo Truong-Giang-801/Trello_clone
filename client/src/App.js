@@ -7,7 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Header from './components/Header';
 import { getAuth } from 'firebase/auth';
-import BoardPage from './pages/BoardPage';
+import BoardRouteWrapper from './pages/BoardRouteWrapper';
 import ProtectedRoute from './components/ProtectedRoute';
 import RedirectRoute from './components/RedirectRoute';
 import AdminPage from './pages/AdminPage';

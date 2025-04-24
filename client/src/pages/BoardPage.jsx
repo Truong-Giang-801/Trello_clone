@@ -20,7 +20,6 @@ import {
   FormControl
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 import AccessTimeFilledIcon from '@mui/icons-material/AccessTimeFilled';
 import PeopleIcon from '@mui/icons-material/People';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
@@ -30,7 +29,10 @@ import io from 'socket.io-client';
 const BoardPage = () => {
   const { boardId } = useParams();
   const auth = getAuth();
+  const currentUser = auth.currentUser;
 
+
+  const [isMember, setIsMemBer] = useState(false);
   const [board, setBoard] = useState(null);
   const [lists, setLists] = useState([]);
   const [openCardDialog, setOpenCardDialog] = useState(false);
@@ -148,12 +150,8 @@ const BoardPage = () => {
     socket.on('deleteList', ({ listId }) => {
       setLists((prev) => prev.filter((list) => list._id !== listId));
     });
-      
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (!currentUser || !boardId) return;
 
-      console.log('Authenticated user:', currentUser.uid);
-
+    const fetchBoard = async () => {
       try {
         const boardRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/board/${boardId}`);
         const workspaceRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/workspace/${boardRes.workspaceId}`);
@@ -178,6 +176,15 @@ const BoardPage = () => {
       } catch (err) {
         console.error('Error fetching data:', err);
       }
+    }
+    fetchBoard()
+      
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser || !boardId) return;
+
+      console.log('Authenticated user:', currentUser.uid);
+
+      
     });
 
     return () => {
@@ -207,6 +214,7 @@ const BoardPage = () => {
 
     if (board) {
       fetchBoardMembers();
+      
     }
   }, [board]);
 
@@ -273,29 +281,6 @@ const BoardPage = () => {
     }
   };
 
-  // Add this function to handle saving the board title edit
-  const handleBoardTitleSave = async (newTitle) => {
-    try {
-      if (!newTitle.trim() || !board) {
-        // Don't save empty titles
-        setEditingBoardTitle(false);
-        return;
-      }
-      
-      await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/board/${board._id}`, {
-        title: newTitle
-      });
-      
-      // Update UI immediately
-      setBoard(prev => ({ ...prev, title: newTitle }));
-      
-      // Exit edit mode
-      setEditingBoardTitle(false);
-    } catch (err) {
-      console.error('Error updating board title:', err);
-    }
-  };
-
   const handleCreateList = async () => {
     try {
       const res = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/list`, {
@@ -306,15 +291,6 @@ const BoardPage = () => {
       return res.data;
     } catch (err) {
       console.error('Error creating list:', err);
-    }
-  };
-
-  const handleEditList = (listId) => {
-    const list = lists.find((l) => l._id === listId);
-    if (list) {
-      setEditingList(list);
-      setNewList({ title: list.title });
-      setOpenListDialog(true);
     }
   };
 
@@ -567,45 +543,20 @@ const BoardPage = () => {
       {board != null && (
         // Click-to-edit Board Title
         <Box sx={{ borderRadius: '10px', bgcolor: 'primary.main', color: 'white', textAlign: 'center', py: 1, marginBottom: '0.5em' }}>
-          {editingBoardTitle ? (
-            <TextField
-              autoFocus
-              value={board.title}
-              variant="standard"
-              InputProps={{
-                sx: { 
-                  color: 'white', 
-                  fontSize: '1.5rem',
-                  textAlign: 'center',
-                  width: '100%'
-                }
-              }}
-              onChange={(e) => setBoard({ ...board, title: e.target.value })}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleBoardTitleSave(board.title);
-                } else if (e.key === 'Escape') {
-                  setEditingBoardTitle(false);
-                }
-              }}
-              onBlur={() => handleBoardTitleSave(board.title)}
-            />
-          ) : (
-            <Typography 
-              variant="h3" 
-              onClick={() => setEditingBoardTitle(true)}
-              sx={{ cursor: 'pointer' }}
-            >
-              {board.title}
-            </Typography>
-          )}
+          <Typography 
+            variant="h3" 
+            onClick={() => setEditingBoardTitle(true)}
+            sx={{ cursor: currentUser ? 'pointer' : 'default' }}
+          >
+            {board.title}
+          </Typography>
         </Box>
       )}
       
       <DragDropContext onDragEnd={onDragEnd}>
         {/* Nút tạo List */}
         <Box sx={{ marginBottom: 2 }}>
-          <Button variant="contained" onClick={() => setOpenListDialog(true)}>
+          <Button variant="contained" onClick={() => setOpenListDialog(true)} disabled={!currentUser}>
             Create New List
           </Button>
         </Box>
@@ -669,7 +620,7 @@ const BoardPage = () => {
                                   variant="h6" 
                                   component="span"
                                   onClick={() => setEditingListId(list._id)}
-                                  sx={{ cursor: 'pointer', display: 'inline-block' }}
+                                  sx={{ cursor: currentUser ? 'pointer' : 'default', display: 'inline-block' }}
                                 >
                                   {list.title}
                                 </Typography>
@@ -738,7 +689,7 @@ const BoardPage = () => {
                                           <Typography 
                                             variant="subtitle1" 
                                             onClick={() => setEditingCardId(card._id)}
-                                            sx={{ cursor: 'pointer' }}
+                                            sx={{ cursor: currentUser ? 'pointer' : 'default' }}
                                           >
                                             {card.title}
                                           </Typography>
@@ -755,6 +706,7 @@ const BoardPage = () => {
                                               setCurrentCard(card);
                                               setOpenDueDateDialog(true);
                                             }}
+                                            disabled={!currentUser}
                                           >
                                             <AccessTimeFilledIcon />
                                           </IconButton>
@@ -765,6 +717,7 @@ const BoardPage = () => {
                                               fetchAssignedMembers(card._id);
                                               setOpenAssignDialog(true);
                                             }}
+                                            disabled={!currentUser}
                                           >
                                             <PeopleIcon />
                                           </IconButton>
@@ -773,6 +726,7 @@ const BoardPage = () => {
                                               e.stopPropagation();
                                               handleDeleteCard(card._id, list._id);
                                             }}
+                                            disabled={!currentUser}
                                           >
                                             <DeleteIcon />
                                           </IconButton>
@@ -790,6 +744,7 @@ const BoardPage = () => {
                                   setNewCard({ ...newCard, listId: list._id });
                                   setOpenCardDialog(true);
                                 }}
+                                disabled={!currentUser}
                               >
                                 Add Card
                               </Button>
@@ -801,6 +756,7 @@ const BoardPage = () => {
                                     e.stopPropagation();
                                     handleDeleteList(list._id);
                                   }}
+                                  disabled={!currentUser}
                                 >
                                   <DeleteIcon />
                                 </IconButton>

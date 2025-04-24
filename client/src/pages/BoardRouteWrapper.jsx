@@ -34,7 +34,7 @@ const BoardRouteWrapper = ({ user }) => {
 
   return (
     <ProtectedRoute user={user} requiredRole="User">
-      <BoardPage board={board} />
+      <BoardPage/>
     </ProtectedRoute>
   );
 };
