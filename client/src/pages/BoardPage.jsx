@@ -153,7 +153,8 @@ const BoardPage = () => {
 
       try {
         const boardRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/board/${boardId}`);
-        setBoard(boardRes.data);
+        const workspaceRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/workspace/${boardRes.workspaceId}`);
+        setBoard({...boardRes.data, memberIds: workspaceRes.data.members});
         const listRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/board/${boardId}`);
         const lists = listRes.data;
 

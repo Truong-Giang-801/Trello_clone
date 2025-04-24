@@ -25,18 +25,8 @@ async function getAllWorkspaceByUser (req, res) {
         res.status(500).send('Internal server error');
     }
 }
-async function getAllWorkspaces(req, res) {
-    try {
-      const workspaces = await workspaceService.getAllWorkspaces();
-      res.status(200).json(workspaces);
-    } catch (error) {
-      console.error('Error fetching all workspaces:', error);
-      res.status(500).send('Internal server error');
-    }
-  }
-  
+
 export default {
     createWorkspace,
-    getAllWorkspaceByUser,
-    getAllWorkspaces,
+    getAllWorkspaceByUser
 };
