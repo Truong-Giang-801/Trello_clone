@@ -3,7 +3,9 @@ import workspaceController from '../controllers/WorkspaceController.js'; // Add 
 const router = express.Router();
 
 router.post('/', workspaceController.createWorkspace);
-router.get('/:ownerId', workspaceController.getAllWorkspaceByUser);
+router.get('/:workspaceId', workspaceController.getWorkspace);
+router.put('/:workspaceId', workspaceController.updateWorkspace);
+router.get('/all/:ownerId', workspaceController.getAllWorkspaceByUser);
 // router.get('/:userId', workspaceController.getAllBoardByUser);
 // router.delete('/:boardId', boardController.deleteBoard);
 router.get('/', workspaceController.getAllWorkspaces);
