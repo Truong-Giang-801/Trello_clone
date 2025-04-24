@@ -29,7 +29,6 @@ const Login = () => {
       const result = await signInWithEmailAndPassword(auth, email, password);
       console.log("User logged in:", result.user);
       // Sync the user with the backend
-      await syncUserToBackend();
       // Check the user's role
       if (result.user) {
         const userData = await checkRole(result.user.uid);
@@ -78,8 +77,8 @@ const Login = () => {
 
     try {
       // Fetch user data from the backend using the UID
-      const response = await fetch(`http://localhost:5277/api/users/uid/${userUid}`, {
-        method: "GET", // Use GET for fetching data
+      const response = await fetch(`http://localhost:5277/api/Users/uid/${userUid}`, {
+        method: "GET", // Use GET for fetching dat
         headers: {
           "Content-Type": "application/json",
         },

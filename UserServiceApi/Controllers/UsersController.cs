@@ -88,7 +88,7 @@ public class UsersController : ControllerBase
             return NotFound();
         }
 
-        await _userService.DeleteUserAsync(id);
+        await _userService.DeleteUserAndAssociatedDataAsync(id);
         return NoContent();
     }
     [HttpGet]
