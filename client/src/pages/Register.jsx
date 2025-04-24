@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { auth, db } from "../firebase";
+import { auth } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { setDoc, doc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import {
   Container,
@@ -30,26 +29,26 @@ const Register = () => {
   return (
     <Container maxWidth="sm">
       <Box
-        sx={{
+        sx={ {
           mt: 8,
           p: 4,
           border: "1px solid #ddd",
           borderRadius: "12px",
           boxShadow: 3,
           backgroundColor: "white",
-        }}
+        } }
       >
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Register
         </Typography>
 
-        <form onSubmit={handleRegister}>
-          <Stack spacing={2}>
+        <form onSubmit={ handleRegister }>
+          <Stack spacing={ 2 }>
             <TextField
               type="email"
               label="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={ email }
+              onChange={ (e) => setEmail(e.target.value) }
               required
               fullWidth
               variant="outlined"
@@ -57,8 +56,8 @@ const Register = () => {
             <TextField
               type="password"
               label="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={ password }
+              onChange={ (e) => setPassword(e.target.value) }
               required
               fullWidth
               variant="outlined"

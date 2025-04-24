@@ -70,7 +70,7 @@ export const BoardForm = ({ onBoardFormSummited }) => {
                   value={ visibility }
                   disabled={ !interactable }
                   onChange={ (e) => setVisibility(e.target.checked ? 'public' : 'private') } /> }
-              label="Visible" />
+              label="Public" />
 
             <Button
               type="submit"

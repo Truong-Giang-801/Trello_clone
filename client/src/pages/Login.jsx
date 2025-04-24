@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   signInWithEmailAndPassword,
-  sendPasswordResetEmail,
   signInWithPopup,
   createUserWithEmailAndPassword,
   GoogleAuthProvider
@@ -50,11 +49,12 @@ const Login = () => {
       console.error("Failed to sync user:", err);
     }
   };
+
   const handleRegister = async () => {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       await syncUserToBackend(result.user);
-      navigate("/user-boards");
+      navigate("/private");
     } catch (err) {
       alert(err.message);
     }

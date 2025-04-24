@@ -6,13 +6,13 @@ import BoardButton from './BoardButton';
 const Workspace = ({ workspace, onClickCreate }) => {
     const [boardsData, setBoardsData] = useState([]);
 
-    async function fetchBoards () {
-        const res = await apiBoardGetAllBoardByWorkspace(workspace._id);
-        // console.log(JSON.stringify(res.data));
-        setBoardsData(res.data ? res.data : []);
-    }
-
     useEffect(() => {
+        const fetchBoards = async () => {
+            const res = await apiBoardGetAllBoardByWorkspace(workspace._id);
+            // console.log(JSON.stringify(res.data));
+            setBoardsData(res.data ? res.data : []);
+        };
+
         fetchBoards();
     }, [workspace]);
 
