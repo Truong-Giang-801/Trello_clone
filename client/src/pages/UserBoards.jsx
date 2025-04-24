@@ -88,6 +88,7 @@ const UserBoards = () => {
                 </DialogContent>
             </Dialog>
 
+            {/* Display all workspaces */}
             <Stack>
                 {workspacesData.map((workspace, index) => (
                     <Workspace
