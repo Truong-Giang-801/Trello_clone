@@ -67,10 +67,10 @@ export async function assignUser(req, res) {
     const { userId } = req.body;
 
     const updatedCard = await cardService.assignUser(cardId, userId);
-    
+
     const io = req.app.get('socketio');
-    io.emit('updateCard', updatedCard); // emit update event
-    
+    io.emit('assignUser', { cardId, userId }); // Emit assign event
+
     res.status(200).json(updatedCard);
   } catch (error) {
     console.error("Error assigning user to card:", error);
@@ -82,12 +82,12 @@ export async function assignUser(req, res) {
 export async function removeAssignedUser(req, res) {
   try {
     const { cardId, userId } = req.params;
-    
+
     const updatedCard = await cardService.removeAssignedUser(cardId, userId);
-    
+
     const io = req.app.get('socketio');
-    io.emit('updateCard', updatedCard); // emit update event
-    
+    io.emit('unassignUser', { cardId, userId }); // Emit unassign event
+
     res.status(200).json(updatedCard);
   } catch (error) {
     console.error("Error removing assigned user:", error);

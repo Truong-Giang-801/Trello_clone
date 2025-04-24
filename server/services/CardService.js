@@ -49,14 +49,14 @@ class CardService {
         throw new Error('Card not found');
       }
       
-      // Initialize assignedTo array if it doesn't exist
-      if (!card.assignedTo) {
-        card.assignedTo = [];
+      // Initialize assignMember array if it doesn't exist
+      if (!card.assignMember) {
+        card.assignMember = [];
       }
       
       // Check if user is already assigned to avoid duplicates
-      if (!card.assignedTo.includes(userId)) {
-        card.assignedTo.push(userId);
+      if (!card.assignMember.includes(userId)) {
+        card.assignMember.push(userId);
       }
       
       const updatedCard = await card.save();
@@ -70,7 +70,7 @@ class CardService {
     try {
       const updatedCard = await CardMongoose.findByIdAndUpdate(
         cardId,
-        { $pull: { assignedTo: userId } },
+        { $pull: { assignMember: userId } },
         { new: true }
       );
       return updatedCard;

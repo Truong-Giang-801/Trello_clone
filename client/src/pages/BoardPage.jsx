@@ -72,6 +72,33 @@ const BoardPage = () => {
         });
       });
     });
+    // Handle assigning a user to a card
+    socket.on('assignUser', ({ cardId, userId }) => {
+      setLists((prevLists) =>
+        prevLists.map((list) => ({
+          ...list,
+          cards: list.cards.map((card) =>
+            card._id === cardId
+              ? { ...card, assignMember: [...(card.assignMember || []), userId] }
+              : card
+          ),
+        }))
+      );
+    });
+
+    // Handle unassigning a user from a card
+    socket.on('unassignUser', ({ cardId, userId }) => {
+      setLists((prevLists) =>
+        prevLists.map((list) => ({
+          ...list,
+          cards: list.cards.map((card) =>
+            card._id === cardId
+              ? { ...card, assignMember: card.assignMember.filter((id) => id !== userId) }
+              : card
+          ),
+        }))
+      );
+    });
     socket.on('updateCard', (updatedCard) => {
       setLists((prevLists) => {
         // First, we need to identify if this card has moved to a different list
@@ -154,7 +181,7 @@ const BoardPage = () => {
     const fetchBoard = async () => {
       try {
         const boardRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/board/${boardId}`);
-        const workspaceRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/workspace/${boardRes.workspaceId}`);
+        const workspaceRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/workspace/${boardRes.data.workspaceId}`);
         setBoard({...boardRes.data, memberIds: workspaceRes.data.members});
         const listRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/list/board/${boardId}`);
         const lists = listRes.data;
@@ -197,31 +224,26 @@ const BoardPage = () => {
         console.log('Current user:', currentUser);
         console.log('Board:', board);
 
-        // Fetch the current user's ID
-        const userRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/users/uid/${currentUser.uid}`);
-        const currentUserId = userRes.data._id;
-
         // Fetch the workspace associated with the board to get the ownerId
         const workspaceRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/workspace/${board.workspaceId}`);
         const workspaceOwnerId = workspaceRes.data.ownerId;
 
         // Check if the current user is the owner of the workspace
-        const isCurrentUserOwner = workspaceOwnerId === currentUserId;
+        const isCurrentUserOwner = workspaceOwnerId === currentUser.uid;
 
         // Fetch board members
         if (board.memberIds && board.memberIds.length > 0) {
           try {
             const memberPromises = board.memberIds.map((userId) =>
-              axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/user/${userId}`)
+              axios.get(`http://localhost:5277/api/Users/email/${userId}`)
             );
 
             const responses = await Promise.all(memberPromises);
             const fetchedMembers = responses.map((res) => res.data);
-
             setBoardMembers(fetchedMembers);
 
             // Check if the current user is a member of the board
-            const isCurrentUserMember = fetchedMembers.some((member) => member._id === currentUserId);
+            const isCurrentUserMember = fetchedMembers.some((member) => member._id === currentUser.uid);
             setIsMemBer(isCurrentUserMember || isCurrentUserOwner); // User is a member if they are either a member or the owner
           } catch (err) {
             console.error('Error fetching board members:', err);
@@ -398,10 +420,10 @@ const BoardPage = () => {
     try {
       const res = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/card/${cardId}`);
       const card = res.data;
-      
-      if (card.assignedTo && card.assignedTo.length > 0) {
+      console.log(card);
+      if (card.assignMember && card.assignMember.length > 0) {
         const assignedUsersRes = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/users/multiple`, {
-          params: { userIds: card.assignedTo.join(',') }
+          params: { userIds: card.assignMember.join(',') }
         });
         setAssignedMembers(assignedUsersRes.data);
       } else {
@@ -933,7 +955,7 @@ const BoardPage = () => {
                   <em>Select a member</em>
                 </MenuItem>
                 {boardMembers.map((member) => (
-                  <MenuItem key={member._id} value={member._id}>
+                  <MenuItem key={member.uid} value={member.uid}>
                     {member.name || member.email}
                   </MenuItem>
                 ))}
