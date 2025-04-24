@@ -16,14 +16,10 @@ const Header = () => {
       path: "/private",
       label: "My Boards",
       requireLogin: true
-    }, {
-      path: "/workspace",
-      label: "My Workspaces",
-      requireLogin: true
     },
     // {
-    //   path: "/workspaces",
-    //   label: "Workspaces",
+    //   path: "/workspace",
+    //   label: "My Workspaces",
     //   requireLogin: true
     // },
   ];

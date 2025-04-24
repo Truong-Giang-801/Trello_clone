@@ -19,9 +19,9 @@ const Workspace = ({ workspace, onClickCreate }) => {
     return (
         <div>
             <Typography
-                variant="h4"
+                variant="h6"
                 sx={ {
-                    p: 2
+                    paddingLeft: 2
                 } }>
                 { workspace.title }
             </Typography>
@@ -39,7 +39,7 @@ const Workspace = ({ workspace, onClickCreate }) => {
                 {
                     boardsData.map((board, index) => {
                         return (
-                            <BoardButton board={ board } />
+                            <BoardButton board={ board } key={ index } />
                         );
                     })
                 }

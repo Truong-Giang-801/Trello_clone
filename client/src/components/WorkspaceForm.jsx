@@ -45,7 +45,7 @@ export const WorkspaceForm = ({ onFormSummited }) => {
         } }
       >
         <Typography variant="h5" gutterBottom align="center">
-          Create Board
+          Create Workspace
         </Typography>
 
         <form onSubmit={ handleSubmit }>
@@ -78,7 +78,7 @@ export const WorkspaceForm = ({ onFormSummited }) => {
               size="large"
               disabled={ !interactable }
             >
-              Create Board
+              Create Workspace
             </Button>
           </Stack>
         </form>

@@ -14,13 +14,13 @@ const UserBoards = () => {
     const [currentWorkspace, setCurrentWorkspace] = useState(null);
 
     // Fetch all workspaces for the user
-    async function fetchWorkspaces(userId) {
+    async function fetchWorkspaces (userId) {
         const res = await apiUserAllWorkspaceByUser(userId);
         setWorkspacesData(res.data);
     }
 
     // Create a new board in the current workspace
-    async function createBoard(board, onBoardCreated) {
+    async function createBoard (board, onBoardCreated) {
         if (!currentWorkspace) {
             console.error("No workspace selected");
             return;
@@ -31,7 +31,7 @@ const UserBoards = () => {
     }
 
     // Create a new workspace
-    async function createWorkspace(workspace, onWorkspaceCreated) {
+    async function createWorkspace (workspace, onWorkspaceCreated) {
         const res = await apiUserCreateWorkspace(workspace);
         onWorkspaceCreated(res.data);
     }
@@ -45,40 +45,18 @@ const UserBoards = () => {
 
     return (
         <div>
-            {/* Dialog to create a new board */}
+            {/* Dialog to create a new board */ }
             <Dialog
-                open={showBoardForm}
-                onClose={() => setShowBoardForm(false)}>
+                open={ showBoardForm }
+                onClose={ () => setShowBoardForm(false) }>
                 <DialogTitle>Create Board</DialogTitle>
                 <DialogContent>
                     <BoardForm
-                        onBoardFormSummited={(newBoard) => {
+                        onBoardFormSummited={ (newBoard) => {
                             const currentUser = auth.currentUser;
                             if (currentUser) {
                                 newBoard.ownerId = currentUser.uid;
                                 createBoard(newBoard, () => {
-                                    setShowBoardForm(false);
-                                    fetchWorkspaces(currentUser.uid);
-                                });
-                            }
-                        }}
-                    />
-                </DialogContent>
-            </Dialog>
-
-            <Dialog
-                open={ showWorkspaceForm }
-                onClose={ () => showWorkspaceForm(false) }>
-                <DialogTitle>Create Workspace</DialogTitle>
-                <DialogContent>
-                    <WorkspaceForm
-                        onFormSummited={ (newWorkspace) => {
-                            const currentUser = auth.currentUser;
-                            if (currentUser) {
-
-                                newWorkspace.ownerId = currentUser.uid;
-                                createWorkspace({ ownerId: currentUser.uid }, () => fetchWorkspaces(currentUser.uid));
-                                createBoard(newWorkspace, () => {
                                     setShowBoardForm(false);
                                     fetchWorkspaces(currentUser.uid);
                                 });
@@ -88,32 +66,54 @@ const UserBoards = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Display all workspaces */}
-            <Stack>
-                {workspacesData.map((workspace, index) => (
+            <Dialog
+                open={ showWorkspaceForm }
+                onClose={ () => setShowWorkspaceForm(false) }>
+                <DialogTitle>Create Workspace</DialogTitle>
+                <DialogContent>
+                    <WorkspaceForm
+                        onFormSummited={ (newWorkspace) => {
+                            const currentUser = auth.currentUser;
+                            if (currentUser) {
+
+                                newWorkspace.ownerId = currentUser.uid;
+                                // createWorkspace({ ownerId: currentUser.uid }, () => fetchWorkspaces(currentUser.uid));
+                                createWorkspace(newWorkspace, () => {
+                                    setShowWorkspaceForm(false);
+                                    fetchWorkspaces(currentUser.uid);
+                                });
+                            }
+                        } }
+                    />
+                </DialogContent>
+            </Dialog>
+
+            {/* Display all workspaces */ }
+            <Stack sx={ { paddingTop: 2 } }>
+                { workspacesData.map((workspace, index) => (
                     <Workspace
-                        key={index}
-                        workspace={workspace}
-                        onClickCreate={(id) => {
+                        key={ index }
+                        workspace={ workspace }
+                        onClickCreate={ (id) => {
                             setCurrentWorkspace(id);
                             setShowBoardForm(true);
-                        }}
+                        } }
                     />
-                ))}
-                
-                {/* Button to create a new workspace */}
-                <Box sx={{ p: 2 }}>
+                )) }
+
+                {/* Button to create a new workspace */ }
+                <Box sx={ { p: 2 } }>
                     <Button
                         size="large"
                         variant="outlined"
-                        onClick={() => {
+                        onClick={ () => {
                             const currentUser = auth.currentUser;
                             if (currentUser) {
-                                showWorkspaceForm(true);
+                                setShowWorkspaceForm(true);
                                 // createWorkspace({ ownerId: currentUser.uid }, () => fetchWorkspaces(currentUser.uid));
                             }
-                        }}
-                        sx={{
+                        } }
+                        sx={ {
                             flexGrow: 0,
                             flexShrink: 0,
                             width: '200px',
@@ -121,14 +121,14 @@ const UserBoards = () => {
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
-                        }}>
+                        } }>
                         New workspace
                     </Button>
                 </Box>
             </Stack>
 
-            {/* TextField for BoardId (perhaps for testing or as a placeholder) */}
-            <TextField label="BoardId" variant="outlined" />
+            {/* TextField for BoardId (perhaps for testing or as a placeholder) */ }
+            {/* <TextField label="BoardId" variant="outlined" /> */ }
         </div>
     );
 };
