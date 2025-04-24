@@ -7,7 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Header from './components/Header';
 import { getAuth } from 'firebase/auth';
-import BoardPage from './pages/BoardPage';
+import BoardRouteWrapper from './pages/BoardRouteWrapper';
 import ProtectedRoute from './components/ProtectedRoute';
 import RedirectRoute from './components/RedirectRoute';
 import AdminPage from './pages/AdminPage';
@@ -43,59 +43,52 @@ function App() {
     <BrowserRouter>
       <Header />
       <Routes>
-  <Route path="/">
-    {/* Default route to Homepage */}
-    <Route index element={<HomePage />} />
-
-    {/* Other routes */}
-    <Route
-      path="public"
-      element={
-          <PublicBoards />
-      }
-    />
-    <Route
-      path="private"
-      element={
-        <ProtectedRoute user={user} requiredRole="User">
-          <UserBoards />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="admin"
-      element={
-        <ProtectedRoute user={user} requiredRole="Admin">
-          <AdminPage />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="board/:boardId"
-      element={
-        <ProtectedRoute user={user} requiredRole="User">
-          <BoardPage />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="login"
-      element={
-        <RedirectRoute user={user}>
-          <Login />
-        </RedirectRoute>
-      }
-    />
-    <Route
-      path="register"
-      element={
-        <RedirectRoute user={user}>
-          <Register />
-        </RedirectRoute>
-      }
-    />
-  </Route>
-</Routes>
+        <Route path="/">
+          <Route index element={<HomePage />} />
+          <Route
+            path="public"
+            element={
+              <PublicBoards />
+            }
+          />
+          <Route
+            path="private"
+            element={
+              <ProtectedRoute user={user} requiredRole="User">
+                <UserBoards />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="admin"
+            element={
+              <ProtectedRoute user={user} requiredRole="Admin">
+                <AdminPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="board/:boardId"
+            element={<BoardRouteWrapper user={user} />}
+          />
+          <Route
+            path="login"
+            element={
+              <RedirectRoute user={user}>
+                <Login />
+              </RedirectRoute>
+            }
+          />
+          <Route
+            path="register"
+            element={
+              <RedirectRoute user={user}>
+                <Register />
+              </RedirectRoute>
+            }
+          />
+        </Route>
+      </Routes>
     </BrowserRouter>
   );
 }
